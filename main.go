@@ -13,8 +13,29 @@ func main() {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	log.Printf("%+v\n", conn.GetGenetlinkFamily().Groups)
-	reply, err := conn.DumpDeviceGet()
-	log.Println(reply[0])
+	mcastId, found := conn.GetMcastGroupId(dpll.DPLL_MCGRP_MONITOR)
+	if !found {
+		log.Panic("multicast ID ", dpll.DPLL_MCGRP_MONITOR, " not found")
+	}
 
+	replies, err := conn.DumpDeviceGet()
+	for _, reply := range replies {
+		log.Println(dpll.GetDpllStatusHR(reply))
+	}
+
+	c := conn.GetGenetlinkConn()
+	err = c.JoinGroup(mcastId)
+	if err != nil {
+		log.Panic(err)
+	}
+	for {
+		msgs, _, err := c.Receive()
+		if err != nil {
+			log.Panic(err)
+		}
+		ntfs, err := dpll.ParseDeviceReplies(msgs)
+		for _, ntf := range ntfs {
+			log.Println(dpll.GetDpllStatusHR(ntf))
+		}
+	}
 }

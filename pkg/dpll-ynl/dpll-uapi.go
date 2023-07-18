@@ -1,4 +1,5 @@
-// Reimplement definitions from <kernel-root>/include/uapi/linux/dpll.h
+// Port definitions from <kernel-root>/include/uapi/linux/dpll.h and
+// tools/net/ynl/generated/dpll-user.h
 
 package dpll
 
@@ -50,3 +51,70 @@ const (
 	__DPLL_CMD_MAX
 	DPLL_CMD_MAX = (__DPLL_CMD_MAX - 1)
 )
+
+// GetLockStatus returns DPLL lock status as a string
+func GetLockStatus(ls uint8) string {
+	lockStatusMap := map[uint8]string{
+		1: "unlocked",
+		2: "locked",
+		3: "locked-ho-acquired",
+		4: "holdover",
+	}
+	status, found := lockStatusMap[ls]
+	if found {
+		return status
+	}
+	return ""
+}
+
+// GetDpllType returns DPLL type as a string
+func GetDpllType(tp uint8) string {
+	typeMap := map[int]string{
+		1: "pps",
+		2: "eec",
+	}
+	typ, found := typeMap[int(tp)]
+	if found {
+		return typ
+	}
+	return ""
+}
+
+// GetMode returns DPLL mode as a string
+func GetMode(md uint8) string {
+	modeMap := map[int]string{
+		1: "manual",
+		2: "automatic",
+		3: "holdover",
+		4: "freerun",
+	}
+	mode, found := modeMap[int(md)]
+	if found {
+		return mode
+	}
+	return ""
+}
+
+// DpllStatusHR represents human-readable DPLL status
+type DpllStatusHR struct {
+	Id            uint32
+	ModuleName    string
+	Mode          string
+	ModeSupported string
+	LockStatus    string
+	ClockId       uint64
+	Type          string
+}
+
+// GetDpllStatusHR returns human-readable DPLL status
+func GetDpllStatusHR(reply *DoDeviceGetReply) DpllStatusHR {
+	return DpllStatusHR{
+		Id:         reply.Id,
+		ModuleName: reply.ModuleName,
+		Mode:       GetMode(reply.Mode),
+		// TODO: ModeSupported
+		LockStatus: GetLockStatus(reply.LockStatus),
+		ClockId:    reply.ClockId,
+		Type:       GetDpllType(reply.Type),
+	}
+}
