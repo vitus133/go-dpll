@@ -19,6 +19,9 @@ func main() {
 	}
 
 	replies, err := conn.DumpDeviceGet()
+	if err != nil {
+		log.Panic(err)
+	}
 	for _, reply := range replies {
 		log.Println(dpll.GetDpllStatusHR(reply))
 	}
@@ -34,6 +37,9 @@ func main() {
 			log.Panic(err)
 		}
 		ntfs, err := dpll.ParseDeviceReplies(msgs)
+		if err != nil {
+			log.Panic(err)
+		}
 		for _, ntf := range ntfs {
 			log.Println(dpll.GetDpllStatusHR(ntf))
 		}
