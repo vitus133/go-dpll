@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/mdlayher/genetlink v1.3.2
 	github.com/mdlayher/netlink v1.7.2
+	github.com/u-root/u-root v0.11.0
 )
 
 require (
