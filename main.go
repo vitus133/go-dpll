@@ -30,9 +30,9 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	c.SetReadDeadline(time.Now().Add(3 * time.Second))
-	for {
 
+	for {
+		c.SetReadDeadline(time.Now().Add(3 * time.Second))
 		msgs, _, err := c.Receive()
 		if err != nil {
 			log.Println("deadline")
