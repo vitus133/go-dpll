@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	conn, err := dpll.Dial(nil)
 	if err != nil {
 		log.Fatal(err)
@@ -26,18 +25,16 @@ func main() {
 	for _, reply := range replies {
 		log.Println(dpll.GetDpllStatusHR(reply))
 	}
-
 	c := conn.GetGenetlinkConn()
 	err = c.JoinGroup(mcastId)
 	if err != nil {
 		log.Panic(err)
 	}
 	for {
-		c.SetReadDeadline(<-time.After(3 * time.Second))
+
+		c.SetReadDeadline(time.Now().Add(3 * time.Second))
 		msgs, _, err := c.Receive()
 		if err != nil {
-			log.Println(err.Error())
-			c.JoinGroup(mcastId)
 			continue
 		}
 		ntfs, err := dpll.ParseDeviceReplies(msgs)
