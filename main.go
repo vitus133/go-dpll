@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
 )
@@ -32,6 +33,7 @@ func main() {
 		log.Panic(err)
 	}
 	for {
+		c.SetReadDeadline(<-time.After(3 * time.Second))
 		msgs, _, err := c.Receive()
 		if err != nil {
 			log.Panic(err)
