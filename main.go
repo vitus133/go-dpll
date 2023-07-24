@@ -37,6 +37,7 @@ func main() {
 		msgs, _, err := c.Receive()
 		if err != nil {
 			log.Println(err.Error())
+			err = c.JoinGroup(mcastId)
 			continue
 		}
 		ntfs, err := dpll.ParseDeviceReplies(msgs)
