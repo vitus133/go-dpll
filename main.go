@@ -35,6 +35,7 @@ func main() {
 		c.SetReadDeadline(time.Now().Add(3 * time.Second))
 		msgs, _, err := c.Receive()
 		if err != nil {
+			log.Println("deadline")
 			continue
 		}
 		ntfs, err := dpll.ParseDeviceReplies(msgs)
