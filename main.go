@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
@@ -35,7 +36,10 @@ func main() {
 		c.SetReadDeadline(time.Now().Add(3 * time.Second))
 		msgs, _, err := c.Receive()
 		if err != nil {
-			log.Println("deadline")
+			if strings.Contains(err.Error(), "timeout") {
+				continue
+			}
+			log.Println(err)
 			continue
 		}
 		ntfs, err := dpll.ParseDeviceReplies(msgs)
