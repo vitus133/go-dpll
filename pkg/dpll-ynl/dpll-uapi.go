@@ -6,6 +6,7 @@ package dpll
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 const DPLL_MCGRP_MONITOR = "monitor"
@@ -145,6 +146,7 @@ func GetDpllStatusHR(reply *DoDeviceGetReply) DpllStatusHR {
 
 // PinInfo is used with the DoPinGet method.
 type PinInfoHR struct {
+	Timestamp                 time.Time         `json:"timestamp"`
 	Id                        uint32            `json:"id"`
 	ClockId                   uint64            `json:"clockId"`
 	BoardLabel                string            `json:"boardLabel"`
@@ -241,8 +243,9 @@ func GetPinCapabilities(c uint32) string {
 }
 
 // GetPinInfoHR returns human-readable pin status
-func GetPinInfoHR(reply *PinInfo) ([]byte, error) {
+func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 	hr := PinInfoHR{
+		Timestamp:          timestamp,
 		Id:                 reply.Id,
 		ClockId:            reply.ClockId,
 		BoardLabel:         reply.BoardLabel,

@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/cobra"
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
@@ -31,8 +32,9 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			log.Panic(err)
 		}
+		timestamp := time.Now().UTC()
 		for _, pinInfo := range pinReplies {
-			pinInfo, err := dpll.GetPinInfoHR(pinInfo)
+			pinInfo, err := dpll.GetPinInfoHR(pinInfo, timestamp)
 			if err != nil {
 				log.Panic(err)
 			}

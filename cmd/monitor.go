@@ -52,6 +52,7 @@ to quickly create a Cobra application.`,
 				log.Println(err)
 				continue
 			}
+			timestamp := time.Now().UTC()
 			for _, msg := range msgs {
 				switch msg.Header.Command {
 				case dpll.DPLL_CMD_DEVICE_CHANGE_NTF:
@@ -60,7 +61,6 @@ to quickly create a Cobra application.`,
 						log.Panic(err)
 					}
 					for _, ntf := range ntfs {
-						log.Println("")
 						fmt.Println(dpll.GetDpllStatusHR(ntf))
 					}
 				case dpll.DPLL_CMD_PIN_CHANGE_NTF:
@@ -69,18 +69,15 @@ to quickly create a Cobra application.`,
 						log.Panic(err)
 					}
 					for _, ntf := range ntfs {
-						hr, err := dpll.GetPinInfoHR(ntf)
+						hr, err := dpll.GetPinInfoHR(ntf, timestamp)
 						if err != nil {
 							log.Panic(err)
 						}
-						log.Println("")
 						fmt.Println(string(hr))
 					}
 				default:
 					log.Println("unsupported dpll message")
-
 				}
-
 			}
 		}
 	},
