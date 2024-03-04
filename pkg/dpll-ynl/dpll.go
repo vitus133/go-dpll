@@ -142,15 +142,14 @@ func ParseDeviceReplies(msgs []genetlink.Message) ([]*DoDeviceGetReply, error) {
 			case DPLL_A_MODULE_NAME:
 				reply.ModuleName = ad.String()
 			case DPLL_A_MODE:
-				//reply.Mode = ad.Uint32()
+				reply.Mode = ad.Uint32()
 			case DPLL_A_MODE_SUPPORTED:
-				// do we need it? if yes, ModeSupported should be a slice
-				// reply.ModeSupported = ad.Uint32()
+				reply.ModeSupported = append(reply.ModeSupported, ad.Uint32())
 			case DPLL_A_LOCK_STATUS:
 				reply.LockStatus = ad.Uint32()
 			case DPLL_A_PAD:
 			case DPLL_A_TEMP:
-				// TODO: field "reply.Temp", type "s32"
+				reply.Temp = ad.Int32()
 			case DPLL_A_CLOCK_ID:
 				reply.ClockId = ad.Uint64()
 			case DPLL_A_TYPE:
@@ -159,11 +158,9 @@ func ParseDeviceReplies(msgs []genetlink.Message) ([]*DoDeviceGetReply, error) {
 				fmt.Println("default", ad.Type(), len(ad.Bytes()), ad.Bytes())
 			}
 		}
-
 		if err := ad.Err(); err != nil {
 			return nil, err
 		}
-
 		replies = append(replies, &reply)
 	}
 	return replies, nil
@@ -246,7 +243,7 @@ type DoDeviceGetReply struct {
 	Id            uint32
 	ModuleName    string
 	Mode          uint32
-	ModeSupported uint32
+	ModeSupported []uint32
 	LockStatus    uint32
 	Temp          int32
 	ClockId       uint64

@@ -4,7 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/cobra"
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
@@ -30,8 +32,13 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			log.Panic(err)
 		}
+		ts := time.Now().UTC()
 		for _, reply := range replies {
-			log.Println(dpll.GetDpllStatusHR(reply))
+			dev, err := dpll.GetDpllStatusHR(reply, ts)
+			if err != nil {
+				log.Panic(err)
+			}
+			fmt.Println(string(dev))
 		}
 	},
 }

@@ -6,6 +6,7 @@ package dpll
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -111,8 +112,6 @@ func GetMode(md uint32) string {
 	modeMap := map[int]string{
 		1: "manual",
 		2: "automatic",
-		3: "holdover",
-		4: "freerun",
 	}
 	mode, found := modeMap[int(md)]
 	if found {
@@ -123,32 +122,42 @@ func GetMode(md uint32) string {
 
 // DpllStatusHR represents human-readable DPLL status
 type DpllStatusHR struct {
-	Id            uint32
-	ModuleName    string
-	Mode          string
-	ModeSupported string
-	LockStatus    string
-	ClockId       string
-	Type          string
+	Timestamp     time.Time `json:"timestamp"`
+	Id            uint32    `json:"id"`
+	ModuleName    string    `json:"moduleName"`
+	Mode          string    `json:"mode"`
+	ModeSupported string    `json:"modeSupported"`
+	LockStatus    string    `json:"lockStatus"`
+	ClockId       string    `json:"clockId"`
+	Type          string    `json:"type"`
+	Temp          float64   `json:"temp"`
 }
 
 // GetDpllStatusHR returns human-readable DPLL status
-func GetDpllStatusHR(reply *DoDeviceGetReply) DpllStatusHR {
-	return DpllStatusHR{
-		Id:         reply.Id,
-		ModuleName: reply.ModuleName,
-		Mode:       GetMode(reply.Mode),
-		LockStatus: GetLockStatus(reply.LockStatus),
-		ClockId:    fmt.Sprintf("0x%x", reply.ClockId),
-		Type:       GetDpllType(reply.Type),
+func GetDpllStatusHR(reply *DoDeviceGetReply, timestamp time.Time) ([]byte, error) {
+	var modes []string
+	for _, md := range reply.ModeSupported {
+		modes = append(modes, GetMode(md))
 	}
+	hr := DpllStatusHR{
+		Timestamp:     timestamp,
+		Id:            reply.Id,
+		ModuleName:    reply.ModuleName,
+		Mode:          GetMode(reply.Mode),
+		ModeSupported: fmt.Sprint(strings.Join(modes[:], ",")),
+		LockStatus:    GetLockStatus(reply.LockStatus),
+		ClockId:       fmt.Sprintf("0x%x", reply.ClockId),
+		Type:          GetDpllType(reply.Type),
+		Temp:          float64(reply.Temp) / DPLL_TEMP_DIVIDER,
+	}
+	return json.Marshal(hr)
 }
 
 // PinInfo is used with the DoPinGet method.
 type PinInfoHR struct {
 	Timestamp                 time.Time         `json:"timestamp"`
 	Id                        uint32            `json:"id"`
-	ClockId                   uint64            `json:"clockId"`
+	ClockId                   string            `json:"clockId"`
 	BoardLabel                string            `json:"boardLabel"`
 	PanelLabel                string            `json:"panelLabel"`
 	PackageLabel              string            `json:"packageLabel"`
@@ -247,7 +256,7 @@ func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 	hr := PinInfoHR{
 		Timestamp:          timestamp,
 		Id:                 reply.Id,
-		ClockId:            reply.ClockId,
+		ClockId:            fmt.Sprintf("0x%x", reply.ClockId),
 		BoardLabel:         reply.BoardLabel,
 		PanelLabel:         reply.PanelLabel,
 		PackageLabel:       reply.PackageLabel,

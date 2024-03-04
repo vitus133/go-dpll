@@ -61,7 +61,11 @@ to quickly create a Cobra application.`,
 						log.Panic(err)
 					}
 					for _, ntf := range ntfs {
-						fmt.Println(dpll.GetDpllStatusHR(ntf))
+						dev, err := dpll.GetDpllStatusHR(ntf, timestamp)
+						if err != nil {
+							log.Panic(err)
+						}
+						fmt.Println(string(dev))
 					}
 				case dpll.DPLL_CMD_PIN_CHANGE_NTF:
 					ntfs, err := dpll.ParsePinReplies([]genetlink.Message{msg})
