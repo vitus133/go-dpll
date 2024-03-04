@@ -1,4 +1,4 @@
-// Port definitions from <kernel-root>/include/uapi/linux/dpll.h and
+// Definitions from <kernel-root>/include/uapi/linux/dpll.h and
 // tools/net/ynl/generated/dpll-user.h
 
 package dpll
@@ -167,11 +167,11 @@ type PinInfoHR struct {
 
 // PinParentDevice contains nested netlink attributes.
 type PinParentDeviceHR struct {
-	ParentId    uint32 `json:"parentId"`
-	Direction   string `json:"direction"`
-	Prio        uint32 `json:"prio"`
-	State       string `json:"state"`
-	PhaseOffset int64  `json:"phaseOffset"`
+	ParentId      uint32  `json:"parentId"`
+	Direction     string  `json:"direction"`
+	Prio          uint32  `json:"prio"`
+	State         string  `json:"state"`
+	PhaseOffsetPs float64 `json:"phaseOffsetPs"`
 }
 
 // PinParentPin contains nested netlink attributes.
@@ -256,11 +256,11 @@ func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 		FrequencySupported: reply.FrequencySupported,
 		Capabilities:       GetPinCapabilities(reply.Capabilities),
 		ParentDevice: PinParentDeviceHR{
-			ParentId:    reply.ParentDevice.ParentId,
-			Direction:   GetPinDirection(reply.ParentDevice.Direction),
-			Prio:        reply.ParentDevice.Prio,
-			State:       GetPinState(reply.ParentDevice.State),
-			PhaseOffset: reply.ParentDevice.PhaseOffset,
+			ParentId:      reply.ParentDevice.ParentId,
+			Direction:     GetPinDirection(reply.ParentDevice.Direction),
+			Prio:          reply.ParentDevice.Prio,
+			State:         GetPinState(reply.ParentDevice.State),
+			PhaseOffsetPs: float64(reply.ParentDevice.PhaseOffset) / DPLL_PHASE_OFFSET_DIVIDER,
 		},
 		ParentPin: PinParentPinHR{
 			ParentId: reply.ParentPin.ParentId,
