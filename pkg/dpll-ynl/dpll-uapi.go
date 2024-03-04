@@ -143,8 +143,8 @@ func GetDpllStatusHR(reply *DoDeviceGetReply) DpllStatusHR {
 	}
 }
 
-// DoPinGetReply is used with the DoPinGet method.
-type DoPinGetReplyHR struct {
+// PinInfo is used with the DoPinGet method.
+type PinInfoHR struct {
 	Id                        uint32            `json:"id"`
 	ClockId                   uint64            `json:"clockId"`
 	BoardLabel                string            `json:"boardLabel"`
@@ -241,8 +241,8 @@ func GetPinCapabilities(c uint32) string {
 }
 
 // GetPinInfoHR returns human-readable pin status
-func GetPinInfoHR(reply *DoPinGetReply) ([]byte, error) {
-	hr := DoPinGetReplyHR{
+func GetPinInfoHR(reply *PinInfo) ([]byte, error) {
+	hr := PinInfoHR{
 		Id:                 reply.Id,
 		ClockId:            reply.ClockId,
 		BoardLabel:         reply.BoardLabel,

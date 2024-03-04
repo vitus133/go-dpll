@@ -253,15 +253,15 @@ type DoDeviceGetReply struct {
 	Type          uint32
 }
 
-func ParsePinReplies(msgs []genetlink.Message) ([]*DoPinGetReply, error) {
-	replies := make([]*DoPinGetReply, 0, len(msgs))
+func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
+	replies := make([]*PinInfo, 0, len(msgs))
 
 	for _, m := range msgs {
 		ad, err := netlink.NewAttributeDecoder(m.Data)
 		if err != nil {
 			return nil, err
 		}
-		var reply DoPinGetReply
+		var reply PinInfo
 		for ad.Next() {
 			switch ad.Type() {
 			case DPLL_A_PIN_CLOCK_ID:
@@ -346,7 +346,7 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*DoPinGetReply, error) {
 }
 
 // DoPinGet wraps the "pin-get" operation:
-func (c *Conn) DoPinGet(req DoPinGetRequest) (*DoPinGetReply, error) {
+func (c *Conn) DoPinGet(req DoPinGetRequest) (*PinInfo, error) {
 	ae := netlink.NewAttributeEncoder()
 	if req.Id != 0 {
 		ae.Uint32(DPLL_A_PIN_ID, req.Id)
@@ -374,13 +374,13 @@ func (c *Conn) DoPinGet(req DoPinGetRequest) (*DoPinGetReply, error) {
 		return nil, err
 	}
 	if len(replies) != 1 {
-		return nil, errors.New("dpll: expected exactly one DoPinGetReply")
+		return nil, errors.New("dpll: expected exactly one PinInfo")
 	}
 
 	return replies[0], nil
 }
 
-func (c *Conn) DumpPinGet() ([]*DoPinGetReply, error) {
+func (c *Conn) DumpPinGet() ([]*PinInfo, error) {
 	ae := netlink.NewAttributeEncoder()
 
 	b, err := ae.Encode()
@@ -414,8 +414,8 @@ type DoPinGetRequest struct {
 	Id uint32
 }
 
-// DoPinGetReply is used with the DoPinGet method.
-type DoPinGetReply struct {
+// PinInfo is used with the DoPinGet method.
+type PinInfo struct {
 	Id                        uint32
 	ClockId                   uint64
 	BoardLabel                string
