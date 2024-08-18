@@ -4,9 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"bytes"
-	"encoding/gob"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"strings"
@@ -25,10 +22,6 @@ var monitorCmd = &cobra.Command{
 	
 	Dumps all DPLL notifications in JSON format`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rawFlag, err := cmd.Flags().GetBool("raw")
-		if err != nil {
-			log.Fatal(err)
-		}
 		conn, err := dpll.Dial(nil)
 		if err != nil {
 			log.Fatal(err)
@@ -58,17 +51,6 @@ var monitorCmd = &cobra.Command{
 			}
 			timestamp := time.Now().UTC()
 			for _, msg := range msgs {
-				if rawFlag {
-					var m bytes.Buffer
-					enc := gob.NewEncoder(&m)
-					err := enc.Encode(msg.Data)
-					if err != nil {
-						log.Panic(err)
-					}
-					h := hex.EncodeToString(m.Bytes())
-					log.Println("genetling command: ", msg.Header.Command)
-					log.Println("genetlink data: ", h)
-				}
 				switch msg.Header.Command {
 				case dpll.DPLL_CMD_DEVICE_CHANGE_NTF:
 					ntfs, err := dpll.ParseDeviceReplies([]genetlink.Message{msg})
@@ -113,5 +95,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	monitorCmd.Flags().BoolP("raw", "r", false, "Dump raw data")
+	// monitorCmd.Flags().BoolP("raw", "r", false, "Dump raw data")
 }
