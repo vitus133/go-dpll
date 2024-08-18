@@ -20,7 +20,10 @@ var getPinCmd = &cobra.Command{
 	
 	dpll-cli getPin --pinId=23`,
 	Run: func(cmd *cobra.Command, args []string) {
-		pinId, _ := cmd.Flags().GetUint32("pinId")
+		pinId, err := cmd.Flags().GetUint32("pinId")
+		if err != nil {
+			log.Fatal(err)
+		}
 		conn, err := dpll.Dial(nil)
 		if err != nil {
 			log.Fatal(err)
@@ -54,5 +57,5 @@ func init() {
 	// is called directly, e.g.:
 	// getPinCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	getPinCmd.Flags().Uint32P("pinId", "i", 0, "Pin ID")
-	getPinIdCmd.MarkFlagRequired("pinId")
+	getPinCmd.MarkFlagRequired("pinId")
 }
