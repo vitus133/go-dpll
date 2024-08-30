@@ -6,6 +6,7 @@ require (
 	github.com/mdlayher/genetlink v1.3.2
 	github.com/mdlayher/netlink v1.7.2
 	github.com/spf13/cobra v1.8.0
+	k8s.io/utils v0.0.0-20240821151609-f90d01438635
 )
 
 require (

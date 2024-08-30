@@ -24,6 +24,6 @@ tidy:	## Clean dependencies
 	go mod tidy && go mod vendor
 run:	## Run (no build). This is using sudo and assuming go is installed in /usr/local/
 	sudo /usr/local/go/bin/go run main.go
-lint:	## Run linter
-	bin/golangci-lint run
-all: clean tidy lint build ## Clean, tidy, lint and build
+image: ## build and push container image
+	podman build --arch=x86_64 -t quay.io/vgrinber/tools:dpll -f Containerfile . && podman push quay.io/vgrinber/tools:dpll
+all: clean tidy build ## Clean, tidy, and build
