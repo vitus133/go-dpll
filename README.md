@@ -38,7 +38,7 @@ RUN sed -i 's/, socket.MSG_DONTWAIT//g' lib/ynl.py
 ### Use netlink cli from linux kernel tools ###
 
 ```bash
-oc debug no/cnfde21.ptp.lab.eng.bos.redhat.com --image=quay.io/vgrinber/tools@sha256:d953aeefb3cc23ffceddce168f754b251f98b2553b1e3fc85c6f3fa57b480951
+oc debug no/cnfde21.ptp.lab.eng.bos.redhat.com --image=quay.io/vgrinber/tools
 Starting pod/cnfde21ptplabengbosredhatcom-debug-tl8hl ...
 To use host binaries, run `chroot /host`
 Pod IP: 10.16.230.5
@@ -199,4 +199,36 @@ Storing signatures
 [core@cnfdg33 ~]$ 
 
 ```
+or, using the linux kernel netlink tool
+```bash
+[core@cnfdg32 ~]$ sudo podman run --privileged --network=host --rm quay.io/vgrinber/tools:dpll   python3 cli.py --spec /linux/Documentation/netlink/specs/dpll.yaml --dump device-get
+[{'clock-id': 5799633565433967664,
+  'id': 0,
+  'lock-status': 'holdover',
+  'mode': 'automatic',
+  'mode-supported': ['automatic'],
+  'module-name': 'ice',
+  'type': 'eec'},
+ {'clock-id': 5799633565433967664,
+  'id': 1,
+  'lock-status': 'holdover',
+  'mode': 'automatic',
+  'mode-supported': ['automatic'],
+  'module-name': 'ice',
+  'type': 'pps'},
+ {'clock-id': 5799633565433966964,
+  'id': 2,
+  'lock-status': 'locked-ho-acq',
+  'mode': 'automatic',
+  'mode-supported': ['automatic'],
+  'module-name': 'ice',
+  'type': 'eec'},
+ {'clock-id': 5799633565433966964,
+  'id': 3,
+  'lock-status': 'locked-ho-acq',
+  'mode': 'automatic',
+  'mode-supported': ['automatic'],
+  'module-name': 'ice',
+  'type': 'pps'}]
 
+```
