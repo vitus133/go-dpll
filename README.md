@@ -14,16 +14,9 @@ podman build -t $IMG --no-cache -f Containerfile  . && podman push $IMG
 ```
 
 ## Hack ##
-The [Containerfile](Containerfile) specifies two hacks done to the kernel tools here:
+The [Containerfile](Containerfile) specifies one optional hack done to the kernel tools:
 
-### 1. Add DPLL YNL spec
-
-```
-# Comment out this line when dpll.yaml will be upstream
-COPY dpll.yaml /linux/Documentation/netlink/specs/dpll.yaml
-```
-
-### 2. Make monitoring call blocking
+### 1. Make monitoring call blocking
 
 The upstream implementation of `ynl.py` opens the monitoring socket in non-blocking mode, which means that if there is no notification at the exact same moment you run the cli, it will exit.
 If we want to wait for notifications, this hack must be done:
