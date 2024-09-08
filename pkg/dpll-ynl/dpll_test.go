@@ -22,4 +22,9 @@ func Test_PinGet(t *testing.T) {
 		log.Panic(err)
 	}
 	fmt.Println(string(pinInfo))
+	pins, err := conn.DumpPinGet()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(len(pins))
 }
