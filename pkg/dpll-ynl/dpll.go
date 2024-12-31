@@ -277,47 +277,55 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 				reply.Frequency = ad.Uint64()
 			case DPLL_A_PIN_FREQUENCY_SUPPORTED:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
+					var temp FrequencyRange
 					for ad.Next() {
 						switch ad.Type() {
 						case DPLL_A_PIN_FREQUENCY_MIN:
-							reply.FrequencySupported.FrequencyMin = ad.Uint64()
+							temp.FrequencyMin = ad.Uint64()
 						case DPLL_A_PIN_FREQUENCY_MAX:
-							reply.FrequencySupported.FrequencyMax = ad.Uint64()
+							temp.FrequencyMax = ad.Uint64()
 						}
 					}
+					reply.FrequencySupported = append(reply.FrequencySupported, temp)
 					return nil
 				})
 			case DPLL_A_PIN_CAPABILITIES:
 				reply.Capabilities = ad.Uint32()
 			case DPLL_A_PIN_PARENT_DEVICE:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
+					var temp PinParentDevice
 					for ad.Next() {
 						switch ad.Type() {
 						case DPLL_A_PIN_PARENT_ID:
-							reply.ParentDevice.ParentId = ad.Uint32()
+							temp.ParentId = ad.Uint32()
 						case DPLL_A_PIN_DIRECTION:
-							reply.ParentDevice.Direction = ad.Uint32()
+							temp.Direction = ad.Uint32()
 						case DPLL_A_PIN_PRIO:
-							reply.ParentDevice.Prio = ad.Uint32()
+							temp.Prio = ad.Uint32()
 						case DPLL_A_PIN_STATE:
-							reply.ParentDevice.State = ad.Uint32()
+							temp.State = ad.Uint32()
 						case DPLL_A_PIN_PHASE_OFFSET:
-							reply.ParentDevice.PhaseOffset = ad.Int64()
+							temp.PhaseOffset = ad.Int64()
 						}
+
 					}
+					reply.ParentDevice = append(reply.ParentDevice, temp)
 					return nil
 				})
 			case DPLL_A_PIN_PARENT_PIN:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
+					var temp PinParentPin
 					for ad.Next() {
+
 						switch ad.Type() {
 						case DPLL_A_PIN_PARENT_ID:
-							reply.ParentPin.ParentId = ad.Uint32()
+							temp.ParentId = ad.Uint32()
 						case DPLL_A_PIN_STATE:
-							reply.ParentPin.State = ad.Uint32()
+							temp.State = ad.Uint32()
 						}
-					}
 
+					}
+					reply.ParentPin = append(reply.ParentPin, temp)
 					return nil
 				})
 			case DPLL_A_PIN_PHASE_ADJUST_MIN:
@@ -410,10 +418,10 @@ type PinInfo struct {
 	PackageLabel              string
 	Type                      uint32
 	Frequency                 uint64
-	FrequencySupported        FrequencyRange
+	FrequencySupported        []FrequencyRange
 	Capabilities              uint32
-	ParentDevice              PinParentDevice
-	ParentPin                 PinParentPin
+	ParentDevice              []PinParentDevice
+	ParentPin                 []PinParentPin
 	PhaseAdjustMin            int32
 	PhaseAdjustMax            int32
 	PhaseAdjust               int32

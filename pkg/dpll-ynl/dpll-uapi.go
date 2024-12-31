@@ -155,23 +155,23 @@ func GetDpllStatusHR(reply *DoDeviceGetReply, timestamp time.Time) ([]byte, erro
 
 // PinInfo is used with the DoPinGet method.
 type PinInfoHR struct {
-	Timestamp                 time.Time         `json:"timestamp"`
-	Id                        uint32            `json:"id"`
-	ClockId                   string            `json:"clockId"`
-	BoardLabel                string            `json:"boardLabel"`
-	PanelLabel                string            `json:"panelLabel"`
-	PackageLabel              string            `json:"packageLabel"`
-	Type                      string            `json:"type"`
-	Frequency                 uint64            `json:"frequency"`
-	FrequencySupported        FrequencyRange    `json:"frequencySupported"`
-	Capabilities              string            `json:"capabilities"`
-	ParentDevice              PinParentDeviceHR `json:"pinParentDevice"`
-	ParentPin                 PinParentPinHR    `json:"pinParentPin"`
-	PhaseAdjustMin            int32             `json:"phaseAdjustMin"`
-	PhaseAdjustMax            int32             `json:"phaseAdjustMax"`
-	PhaseAdjust               int32             `json:"phaseAdjust"`
-	FractionalFrequencyOffset int               `json:"fractionalFrequencyOffset"`
-	ModuleName                string            `json:"moduleName"`
+	Timestamp                 time.Time           `json:"timestamp"`
+	Id                        uint32              `json:"id"`
+	ClockId                   string              `json:"clockId"`
+	BoardLabel                string              `json:"boardLabel"`
+	PanelLabel                string              `json:"panelLabel"`
+	PackageLabel              string              `json:"packageLabel"`
+	Type                      string              `json:"type"`
+	Frequency                 uint64              `json:"frequency"`
+	FrequencySupported        []FrequencyRange    `json:"frequencySupported"`
+	Capabilities              string              `json:"capabilities"`
+	ParentDevice              []PinParentDeviceHR `json:"pinParentDevice"`
+	ParentPin                 []PinParentPinHR    `json:"pinParentPin"`
+	PhaseAdjustMin            int32               `json:"phaseAdjustMin"`
+	PhaseAdjustMax            int32               `json:"phaseAdjustMax"`
+	PhaseAdjust               int32               `json:"phaseAdjust"`
+	FractionalFrequencyOffset int                 `json:"fractionalFrequencyOffset"`
+	ModuleName                string              `json:"moduleName"`
 }
 
 // PinParentDevice contains nested netlink attributes.
@@ -254,32 +254,45 @@ func GetPinCapabilities(c uint32) string {
 // GetPinInfoHR returns human-readable pin status
 func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 	hr := PinInfoHR{
-		Timestamp:          timestamp,
-		Id:                 reply.Id,
-		ClockId:            fmt.Sprintf("0x%x", reply.ClockId),
-		BoardLabel:         reply.BoardLabel,
-		PanelLabel:         reply.PanelLabel,
-		PackageLabel:       reply.PackageLabel,
-		Type:               GetPinType(reply.Type),
-		Frequency:          reply.Frequency,
-		FrequencySupported: reply.FrequencySupported,
-		Capabilities:       GetPinCapabilities(reply.Capabilities),
-		ParentDevice: PinParentDeviceHR{
-			ParentId:      reply.ParentDevice.ParentId,
-			Direction:     GetPinDirection(reply.ParentDevice.Direction),
-			Prio:          reply.ParentDevice.Prio,
-			State:         GetPinState(reply.ParentDevice.State),
-			PhaseOffsetPs: float64(reply.ParentDevice.PhaseOffset) / DPLL_PHASE_OFFSET_DIVIDER,
-		},
-		ParentPin: PinParentPinHR{
-			ParentId: reply.ParentPin.ParentId,
-			State:    GetPinState(reply.ParentPin.State),
-		},
+		Timestamp:                 timestamp,
+		Id:                        reply.Id,
+		ClockId:                   fmt.Sprintf("0x%x", reply.ClockId),
+		BoardLabel:                reply.BoardLabel,
+		PanelLabel:                reply.PanelLabel,
+		PackageLabel:              reply.PackageLabel,
+		Type:                      GetPinType(reply.Type),
+		Frequency:                 reply.Frequency,
+		FrequencySupported:        make([]FrequencyRange, 0),
 		PhaseAdjustMin:            reply.PhaseAdjustMin,
 		PhaseAdjustMax:            reply.PhaseAdjustMax,
 		PhaseAdjust:               reply.PhaseAdjust,
 		FractionalFrequencyOffset: reply.FractionalFrequencyOffset,
 		ModuleName:                reply.ModuleName,
+		ParentDevice:              make([]PinParentDeviceHR, 0),
+		ParentPin:                 make([]PinParentPinHR, 0),
+		Capabilities:              GetPinCapabilities(reply.Capabilities),
+	}
+	for i := 0; i < len(reply.ParentDevice); i++ {
+		hr.ParentDevice = append(hr.ParentDevice, PinParentDeviceHR{
+			ParentId:      reply.ParentDevice[i].ParentId,
+			Direction:     GetPinDirection(reply.ParentDevice[i].Direction),
+			Prio:          reply.ParentDevice[i].Prio,
+			State:         GetPinState(reply.ParentDevice[i].State),
+			PhaseOffsetPs: float64(reply.ParentDevice[i].PhaseOffset) / DPLL_PHASE_OFFSET_DIVIDER,
+		})
+
+	}
+	for i := 0; i < len(reply.ParentPin); i++ {
+		hr.ParentPin = append(hr.ParentPin, PinParentPinHR{
+			ParentId: reply.ParentPin[i].ParentId,
+			State:    GetPinState(reply.ParentPin[i].State),
+		})
+	}
+	for i := 0; i < len(reply.FrequencySupported); i++ {
+		hr.FrequencySupported = append(hr.FrequencySupported, FrequencyRange{
+			FrequencyMin: reply.FrequencySupported[i].FrequencyMin,
+			FrequencyMax: reply.FrequencySupported[i].FrequencyMax,
+		})
 	}
 	return json.Marshal(hr)
 }
