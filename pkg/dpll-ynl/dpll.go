@@ -480,3 +480,45 @@ func (c *Conn) PinPhaseAdjust(req PinPhaseAdjustRequest) error {
 	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
 	return err
 }
+
+type PinPriority struct {
+	PinParentId uint32
+	Prio        uint32
+}
+
+// PinPriorities is used with PinPrioRequest method.
+type PinPriorities struct {
+	Id         uint32
+	Priorities []PinPriority
+}
+
+// PinPrioRequest wraps the "pin-set" operation:
+// Set parent priorities of a target pin
+func (c *Conn) PinInputPrioRequest(req PinPriorities) error {
+	ae := netlink.NewAttributeEncoder()
+	ae.Uint32(DPLL_A_PIN_ID, req.Id)
+	for _, pp := range req.Priorities {
+		ae.Nested(DPLL_A_PIN_PARENT_DEVICE, func(ae *netlink.AttributeEncoder) error {
+			ae.Uint32(DPLL_A_PIN_PARENT_ID, pp.PinParentId)
+			ae.Uint32(DPLL_A_PIN_PRIO, pp.Prio)
+			return nil
+		})
+	}
+	b, err := ae.Encode()
+	if err != nil {
+		return err
+	}
+
+	msg := genetlink.Message{
+		Header: genetlink.Header{
+			Command: DPLL_CMD_PIN_SET,
+			Version: c.f.Version,
+		},
+		Data: b,
+	}
+
+	// No replies.
+
+	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
+	return err
+}
