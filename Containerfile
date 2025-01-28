@@ -10,7 +10,7 @@ RUN dnf install -y git python3 python3-pip lshw && \
     pip install -r /linux/tools/net/ynl/requirements.txt && \
     dnf remove -y git
 
-WORKDIR /linux/tools/net/ynl
+WORKDIR /linux/tools/net/ynl/pyynl
 
 # Uncomment this line if you want cli to block while waiting on netlink notifications
 # RUN sed -i 's/, socket.MSG_DONTWAIT//g' lib/ynl.py 
