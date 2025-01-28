@@ -20,7 +20,7 @@ var setInputPinPrioCmd = &cobra.Command{
 
 User must provide pin-parent-device parent-id and priority. Can be specified multiple times.
 For example:
-dpll-cli setInputPinPrio -i 0 -p 1 -i 1 -p 255`,
+dpll-cli setInputPinPrio -d 44  -i 0 -p 1 -i 1 -p 255`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(ParentId) != len(Prio) {
 			log.Fatalf("number of parent ids and priorities mismatch")

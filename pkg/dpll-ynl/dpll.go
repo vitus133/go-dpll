@@ -522,3 +522,48 @@ func (c *Conn) PinInputPrioRequest(req PinPriorities) error {
 	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
 	return err
 }
+
+// PinOutputs is used with PinOutputControlRequest method.
+type PinOutputs struct {
+	Id      uint32
+	Outputs []PinOutput
+}
+
+type PinOutput struct {
+	PinParentId uint32
+	Enable      bool
+}
+
+// PinOutputControlRequest wraps the "pin-set" operation:
+// Enable / disable output pin
+func (c *Conn) PinOutputControlRequest(req PinOutputs) error {
+	ae := netlink.NewAttributeEncoder()
+	ae.Uint32(DPLL_A_PIN_ID, req.Id)
+	for _, pp := range req.Outputs {
+		ae.Nested(DPLL_A_PIN_PARENT_DEVICE, func(ae *netlink.AttributeEncoder) error {
+			ae.Uint32(DPLL_A_PIN_PARENT_ID, pp.PinParentId)
+			ae.Uint32(DPLL_A_PIN_STATE, func(enable bool) uint32 {
+				if enable {
+					return DPLL_A_PIN_STATE_CONNECTED
+				}
+				return DPLL_A_PIN_STATE_DISCONNECTED
+			}(pp.Enable))
+			return nil
+		})
+	}
+	b, err := ae.Encode()
+	if err != nil {
+		return err
+	}
+
+	msg := genetlink.Message{
+		Header: genetlink.Header{
+			Command: DPLL_CMD_PIN_SET,
+			Version: c.f.Version,
+		},
+		Data: b,
+	}
+	// No replies.
+	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
+	return err
+}

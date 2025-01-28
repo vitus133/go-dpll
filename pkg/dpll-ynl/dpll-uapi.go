@@ -189,12 +189,18 @@ type PinParentPinHR struct {
 	State    string `json:"parentState"`
 }
 
+const (
+	DPLL_A_PIN_STATE_CONNECTED    = 1
+	DPLL_A_PIN_STATE_DISCONNECTED = 2
+	DPLL_A_PIN_STATE_SELECTABLE   = 3
+)
+
 // GetPinState returns DPLL pin state as a string
 func GetPinState(s uint32) string {
 	stateMap := map[int]string{
-		1: "connected",
-		2: "disconnected",
-		3: "selectable",
+		DPLL_A_PIN_STATE_CONNECTED:    "connected",
+		DPLL_A_PIN_STATE_DISCONNECTED: "disconnected",
+		DPLL_A_PIN_STATE_SELECTABLE:   "selectable",
 	}
 	r, found := stateMap[int(s)]
 	if found {
