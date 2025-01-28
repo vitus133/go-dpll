@@ -62,7 +62,7 @@ var monitorCmd = &cobra.Command{
 						if err != nil {
 							log.Panic(err)
 						}
-						fmt.Println(string(dev))
+						fmt.Printf("%s\n", string(dev))
 					}
 				case dpll.DPLL_CMD_PIN_CHANGE_NTF:
 					ntfs, err := dpll.ParsePinReplies([]genetlink.Message{msg})
@@ -74,7 +74,7 @@ var monitorCmd = &cobra.Command{
 						if err != nil {
 							log.Panic(err)
 						}
-						fmt.Println(string(hr))
+						fmt.Printf("%s\n", string(hr))
 					}
 				default:
 					log.Println("unsupported dpll message")

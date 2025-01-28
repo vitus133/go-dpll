@@ -33,7 +33,7 @@ var dumpPinsPneByOneCmd = &cobra.Command{
 			if err != nil {
 				log.Panic(err)
 			}
-			fmt.Println(string(pinInfo))
+			fmt.Printf("%s\n", string(pinInfo))
 		}
 	},
 }

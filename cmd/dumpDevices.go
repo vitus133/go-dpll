@@ -33,7 +33,7 @@ var dumpDevicesCmd = &cobra.Command{
 			if err != nil {
 				log.Panic(err)
 			}
-			fmt.Println(string(dev))
+			fmt.Printf("%s\n", string(dev))
 		}
 	},
 }
