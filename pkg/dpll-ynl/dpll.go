@@ -567,3 +567,53 @@ func (c *Conn) PinOutputControlRequest(req PinOutputs) error {
 	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
 	return err
 }
+
+type PinParentDeviceCtl struct {
+	Id           uint32
+	PhaseAdjust  *int32
+	PinParentCtl []PinControl
+}
+type PinControl struct {
+	PinParentId uint32
+	Direction   *uint32
+	Prio        *uint32
+	State       *uint32
+}
+
+func (c *Conn) PinControlRequest(req PinParentDeviceCtl) error {
+	ae := netlink.NewAttributeEncoder()
+	ae.Uint32(DPLL_A_PIN_ID, req.Id)
+	if req.PhaseAdjust != nil {
+		ae.Int32(DPLL_A_PIN_PHASE_ADJUST, *req.PhaseAdjust)
+	}
+	for _, pp := range req.PinParentCtl {
+		ae.Nested(DPLL_A_PIN_PARENT_DEVICE, func(ae *netlink.AttributeEncoder) error {
+			ae.Uint32(DPLL_A_PIN_PARENT_ID, pp.PinParentId)
+			if pp.State != nil {
+				ae.Uint32(DPLL_A_PIN_STATE, *pp.State)
+			}
+			if pp.Prio != nil {
+				ae.Uint32(DPLL_A_PIN_PRIO, *pp.Prio)
+			}
+			if pp.Direction != nil {
+				ae.Uint32(DPLL_A_PIN_DIRECTION, *pp.Direction)
+			}
+			return nil
+		})
+	}
+	b, err := ae.Encode()
+	if err != nil {
+		return err
+	}
+
+	msg := genetlink.Message{
+		Header: genetlink.Header{
+			Command: DPLL_CMD_PIN_SET,
+			Version: c.f.Version,
+		},
+		Data: b,
+	}
+	// No replies.
+	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
+	return err
+}

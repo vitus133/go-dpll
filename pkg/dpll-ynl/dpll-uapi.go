@@ -174,7 +174,7 @@ type PinInfoHR struct {
 	ModuleName                string              `json:"moduleName"`
 }
 
-// PinParentDevice contains nested netlink attributes.
+// PinParentDeviceHR contains nested netlink attributes.
 type PinParentDeviceHR struct {
 	ParentId      uint32  `json:"parentId"`
 	Direction     string  `json:"direction"`
