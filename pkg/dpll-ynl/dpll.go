@@ -4,7 +4,6 @@ package dpll
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/mdlayher/genetlink"
@@ -493,7 +492,7 @@ type PinControl struct {
 	State       *uint32
 }
 
-func (c *Conn) PinControlRequest(req PinParentDeviceCtl) ([]byte, error) {
+func EncodePinControl(req PinParentDeviceCtl) ([]byte, error) {
 	ae := netlink.NewAttributeEncoder()
 	ae.Uint32(DPLL_A_PIN_ID, req.Id)
 	if req.PhaseAdjust != nil {

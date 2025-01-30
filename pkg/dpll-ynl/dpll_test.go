@@ -1,30 +1,76 @@
 package dpll
 
 import (
-	"fmt"
-	"log"
+	"math"
+	"os"
 	"testing"
-	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_PinSet(t *testing.T) {
-	conn, err := Dial(nil)
-	if err != nil {
-		log.Fatal(err)
+func Test_EncodePinControl(t *testing.T) {
+	assert.New(t)
+	// test phase adjustment
+	pc := PinParentDeviceCtl{
+		Id: 88,
+		PhaseAdjust: func() *int32 {
+			t := int32(math.MinInt32)
+			return &t
+		}(),
 	}
-	pinReply, err := conn.DoPinGet(DoPinGetRequest{Id: 0})
-	if err != nil {
-		log.Fatal(err)
+	b, err := EncodePinControl(pc)
+	assert.NoError(t, err, "failed to encode phase adjustment")
+	expected, err := os.ReadFile("testdata/encoded-phase-adjustment")
+	assert.NoError(t, err, "failed to read testdata for phase adjustment")
+	assert.Equal(t, expected, b, "encoded data is different from the desired phase adjustment data")
+
+	// Test priority settings
+	pc.PhaseAdjust = nil
+	pc.PinParentCtl = []PinControl{
+		{
+			PinParentId: 8,
+			Prio: func() *uint32 {
+				t := uint32(math.MaxUint32)
+				return &t
+			}(),
+		},
+		{
+			PinParentId: 8,
+			Prio: func() *uint32 {
+				t := uint32(math.MaxUint8)
+				return &t
+			}(),
+		},
 	}
-	timestamp := time.Now().UTC()
-	pinInfo, err := GetPinInfoHR(pinReply, timestamp)
-	if err != nil {
-		log.Panic(err)
+	b, err = EncodePinControl(pc)
+	assert.NoError(t, err, "failed to encode pin priority setting")
+	expected, err = os.ReadFile("testdata/encoded-prio")
+	assert.NoError(t, err, "failed to read testdata for priority setting")
+	assert.Equal(t, expected, b, "encoded data is different from the desired pin priority data")
+
+	// Test setting the connection state
+	pc.PinParentCtl = []PinControl{
+		{
+			PinParentId: 0,
+			Prio:        nil,
+			Direction: func() *uint32 {
+				t := uint32(2)
+				return &t
+			}(),
+		},
+		{
+			PinParentId: 1,
+			Prio:        nil,
+			Direction: func() *uint32 {
+				t := uint32(1)
+				return &t
+			}(),
+		},
 	}
-	fmt.Println(string(pinInfo))
-	pins, err := conn.DumpPinGet()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(len(pins))
+	b, err = EncodePinControl(pc)
+	assert.NoError(t, err, "failed to encode pin connection setting")
+	expected, err = os.ReadFile("testdata/encoded-connection")
+	assert.NoError(t, err, "failed to read testdata for connection setting")
+	assert.Equal(t, expected, b, "encoded data is different from the desired pin connection setting data")
+
 }

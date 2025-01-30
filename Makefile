@@ -18,6 +18,8 @@ help: ## Display this help.
 
 build:	## Build binary
 	go build -o dpll-cli main.go
+test: ## Run unit tests
+	go test -timeout 30s github.com/vitus133/go-dpll/pkg/dpll-ynl -v
 clean:	## Remove build results
 	rm dpll-cli
 tidy:	## Clean dependencies

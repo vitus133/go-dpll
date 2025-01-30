@@ -35,7 +35,7 @@ Flags "prio" and "pinState" are mutually exclusive.
 		fmt.Println("setPin called")
 		if (len(prio) > 0 && len(parentId) != len(prio)) ||
 			(len(pinState) > 0 && len(parentId) != len(pinState)) {
-			log.Fatalf("number of parent IDs dowsn't match pin priorities or states!")
+			log.Fatalf("number of parent IDs doesn't match pin priorities or states!")
 		}
 		pc := dpll.PinParentDeviceCtl{
 			Id:           *pinId,
@@ -64,7 +64,7 @@ Flags "prio" and "pinState" are mutually exclusive.
 			log.Fatal(err)
 		}
 		defer conn.Close()
-		data, err := conn.PinControlRequest(pc)
+		data, err := dpll.EncodePinControl(pc)
 		if err != nil {
 			log.Fatal(err)
 		}
