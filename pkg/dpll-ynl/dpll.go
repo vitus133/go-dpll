@@ -493,7 +493,7 @@ type PinControl struct {
 	State       *uint32
 }
 
-func (c *Conn) PinControlRequest(req PinParentDeviceCtl) error {
+func (c *Conn) PinControlRequest(req PinParentDeviceCtl) ([]byte, error) {
 	ae := netlink.NewAttributeEncoder()
 	ae.Uint32(DPLL_A_PIN_ID, req.Id)
 	if req.PhaseAdjust != nil {
@@ -516,17 +516,21 @@ func (c *Conn) PinControlRequest(req PinParentDeviceCtl) error {
 	}
 	b, err := ae.Encode()
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
+	return b, nil
+}
 
+// SendCommand sends DPLL commands that don't require waiting for a reply
+func (c *Conn) SendCommand(command uint8, data []byte) error {
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_PIN_SET,
+			Command: command,
 			Version: c.f.Version,
 		},
-		Data: b,
+		Data: data,
 	}
 	// No replies.
-	_, err = c.c.Send(msg, c.f.ID, netlink.Request)
+	_, err := c.c.Send(msg, c.f.ID, netlink.Request)
 	return err
 }

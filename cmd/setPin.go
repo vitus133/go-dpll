@@ -64,7 +64,11 @@ Flags "prio" and "pinState" are mutually exclusive.
 			log.Fatal(err)
 		}
 		defer conn.Close()
-		err = conn.PinControlRequest(pc)
+		data, err := conn.PinControlRequest(pc)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = conn.SendCommand(dpll.DPLL_CMD_PIN_SET, data)
 		if err != nil {
 			log.Fatal(err)
 		}

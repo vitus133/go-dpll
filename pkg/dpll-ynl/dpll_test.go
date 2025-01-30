@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func Test_PinGet(t *testing.T) {
+func Test_PinSet(t *testing.T) {
 	conn, err := Dial(nil)
 	if err != nil {
 		log.Fatal(err)
