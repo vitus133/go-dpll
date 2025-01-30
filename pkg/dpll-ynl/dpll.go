@@ -155,7 +155,7 @@ func ParseDeviceReplies(msgs []genetlink.Message) ([]*DoDeviceGetReply, error) {
 			case DPLL_A_TYPE:
 				reply.Type = ad.Uint32()
 			default:
-				fmt.Println("default", ad.Type(), len(ad.Bytes()), ad.Bytes())
+				log.Println("default", ad.Type(), len(ad.Bytes()), ad.Bytes())
 			}
 		}
 		if err := ad.Err(); err != nil {
