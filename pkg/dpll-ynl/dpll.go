@@ -5,6 +5,7 @@ package dpll
 import (
 	"errors"
 	"log"
+	"math"
 
 	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
@@ -292,7 +293,10 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 				reply.Capabilities = ad.Uint32()
 			case DPLL_A_PIN_PARENT_DEVICE:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
-					var temp PinParentDevice
+					temp := PinParentDevice{
+						// Initialize phase offset to a max value, so later we can detect it has been updated
+						PhaseOffset: math.MaxInt64,
+					}
 					for ad.Next() {
 						switch ad.Type() {
 						case DPLL_A_PIN_PARENT_ID:
