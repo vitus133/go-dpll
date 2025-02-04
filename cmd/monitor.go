@@ -14,6 +14,8 @@ import (
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
 )
 
+var monType *string
+
 // monitorCmd represents the monitor command
 var monitorCmd = &cobra.Command{
 	Use:   "monitor",
@@ -38,7 +40,7 @@ var monitorCmd = &cobra.Command{
 		if err != nil {
 			log.Panic(err)
 		}
-
+		log.Println("Monitor ", *monType)
 		for {
 			c.SetReadDeadline(time.Now().Add(3 * time.Second))
 			msgs, _, err := c.Receive()
@@ -50,9 +52,13 @@ var monitorCmd = &cobra.Command{
 				continue
 			}
 			timestamp := time.Now().UTC()
+
 			for _, msg := range msgs {
 				switch msg.Header.Command {
 				case dpll.DPLL_CMD_DEVICE_CHANGE_NTF:
+					if *monType != "all" && *monType != "devices" {
+						continue
+					}
 					ntfs, err := dpll.ParseDeviceReplies([]genetlink.Message{msg})
 					if err != nil {
 						log.Panic(err)
@@ -65,6 +71,9 @@ var monitorCmd = &cobra.Command{
 						fmt.Printf("%s\n", string(dev))
 					}
 				case dpll.DPLL_CMD_PIN_CHANGE_NTF:
+					if *monType != "all" && *monType != "pins" {
+						continue
+					}
 					ntfs, err := dpll.ParsePinReplies([]genetlink.Message{msg})
 					if err != nil {
 						log.Panic(err)
@@ -96,4 +105,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// monitorCmd.Flags().BoolP("raw", "r", false, "Dump raw data")
+	monType = monitorCmd.Flags().StringP("type", "t", "all", "Use 'pins', 'devices' or 'all'")
 }
