@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -11,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
 )
+
+var rawOutput *bool
 
 // dumpPinsCmd represents the dumpPins command
 var dumpPinsCmd = &cobra.Command{
@@ -27,13 +30,22 @@ var dumpPinsCmd = &cobra.Command{
 		if err != nil {
 			log.Panic(err)
 		}
-		timestamp := time.Now().UTC()
-		for _, pinInfo := range pinReplies {
-			pinInfo, err := dpll.GetPinInfoHR(pinInfo, timestamp)
+		if *rawOutput {
+			raw, err := json.Marshal(pinReplies)
 			if err != nil {
 				log.Panic(err)
 			}
-			fmt.Printf("%s\n", string(pinInfo))
+			fmt.Printf("%s\n", string(raw))
+		} else {
+
+			timestamp := time.Now().UTC()
+			for _, pinInfo := range pinReplies {
+				pinInfo, err := dpll.GetPinInfoHR(pinInfo, timestamp)
+				if err != nil {
+					log.Panic(err)
+				}
+				fmt.Printf("%s\n", string(pinInfo))
+			}
 		}
 	},
 }
@@ -49,5 +61,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// dumpPinsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rawOutput = dumpPinsCmd.Flags().BoolP("raw", "r", false, "Print json in the raw format")
+
 }
