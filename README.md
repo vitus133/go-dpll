@@ -13,19 +13,6 @@ export IMG='quay.io/vgrinber/tools:dpll'
 podman build -t $IMG --no-cache -f Containerfile  . && podman push $IMG
 ```
 
-## Hack ##
-The [Containerfile](Containerfile) specifies one optional hack done to the kernel tools:
-
-### 1. Make monitoring call blocking
-
-The upstream implementation of `ynl.py` opens the monitoring socket in non-blocking mode, which means that if there is no notification at the exact same moment you run the cli, it will exit.
-If we want to wait for notifications, this hack must be done:
-
-```
-# Uncomment this line if you want cli to block while waiting on netlink notifications
-RUN sed -i 's/, socket.MSG_DONTWAIT//g' lib/ynl.py 
-```
-
 ## Use ##
 
 ### Use netlink cli from linux kernel tools ###
