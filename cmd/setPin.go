@@ -44,7 +44,12 @@ Flags "prio" and "pinState" are mutually exclusive.
 		if *phaseAdjust != math.MaxInt32 {
 			pc.PhaseAdjust = phaseAdjust
 		}
-
+		if *esyncFrequency != 0 {
+			pc.EsyncFrequency = esyncFrequency
+		}
+		if *frequency != 0 {
+			pc.Frequency = frequency
+		}
 		for i, pid := range parentId {
 			pc.PinParentCtl[i].PinParentId = uint32(pid)
 			if len(pinState) > 0 {
@@ -77,6 +82,8 @@ Flags "prio" and "pinState" are mutually exclusive.
 
 var pinId *uint32
 var phaseAdjust *int32
+var esyncFrequency *uint64
+var frequency *uint64
 var parentId []uint
 var prio []uint
 var pinState []uint
@@ -86,8 +93,10 @@ func init() {
 	pinId = setPinCmd.Flags().Uint32P("pinId", "i", 0, "Pin ID")
 	setPinCmd.MarkFlagRequired("pinId")
 	phaseAdjust = setPinCmd.Flags().Int32P("phaseAdjust", "j", math.MaxInt32, "Phase adjustment in ps")
-	setPinCmd.Flags().UintSliceVarP(&parentId, "parentId", "d", []uint{}, "Pin parent ID")
-	setPinCmd.Flags().UintSliceVarP(&prio, "prio", "p", []uint{}, "Pin priority")
-	setPinCmd.Flags().UintSliceVarP(&pinState, "pinState", "s", []uint{}, "Pin ID")
+	setPinCmd.Flags().UintSliceVarP(&parentId, "parentId", "d", []uint{}, "Pin parent ID(s)")
+	setPinCmd.Flags().UintSliceVarP(&prio, "prio", "p", []uint{}, "Pin priorit(y/ies)")
+	setPinCmd.Flags().UintSliceVarP(&pinState, "pinState", "s", []uint{}, "Pin State(s)")
 	setPinCmd.MarkFlagsMutuallyExclusive("prio", "pinState")
+	esyncFrequency = setPinCmd.Flags().Uint64P("esyncFrequency", "e", 0, "E-Sync frequency in Hz")
+	frequency = setPinCmd.Flags().Uint64P("frequency", "f", 0, "Frequency in Hz")
 }

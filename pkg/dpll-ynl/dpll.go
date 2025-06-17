@@ -60,7 +60,6 @@ func (c *Conn) Close() error { return c.c.Close() }
 // Get id of dpll device that matches given attributes
 func (c *Conn) DoDeviceIdGet(req DoDeviceIdGetRequest) (*DoDeviceIdGetReply, error) {
 	ae := netlink.NewAttributeEncoder()
-	// TODO: field "req.ModuleName", type "string"
 	if req.ClockId != 0 {
 		ae.Uint64(DpllClockID, req.ClockId)
 	}
@@ -433,26 +432,6 @@ type DoPinGetRequest struct {
 }
 
 // PinInfoGet is used with the DoPinGet / DumpPinGet / monitor methods.
-/*
-{'board-label': 'OUT3PN-SYNCEREF',
- 'capabilities': set(),
- 'clock-id': 4179056,
- 'esync-frequency': 0,
- 'esync-pulse': 50,
- 'frequency': 156250000,
- 'frequency-supported': [{'frequency-max': 156250000,
-                          'frequency-min': 156250000}],
- 'id': 0,
- 'module-name': 'dpll_zl3073x',
- 'package-label': 'OUT3',
- 'parent-device': [{'direction': 'output',
-                    'parent-id': 0,
-                    'state': 'connected'}],
- 'phase-adjust': 0,
- 'phase-adjust-max': 2147483647,
- 'phase-adjust-min': -2147483648,
- 'type': 'synce-eth-port'}
-*/
 type PinInfo struct {
 	Id                        uint32
 	ParentId                  uint32
@@ -535,9 +514,11 @@ func (c *Conn) PinPhaseAdjust(req PinPhaseAdjustRequest) error {
 }
 
 type PinParentDeviceCtl struct {
-	Id           uint32
-	PhaseAdjust  *int32
-	PinParentCtl []PinControl
+	Id             uint32
+	Frequency      *uint64
+	PhaseAdjust    *int32
+	EsyncFrequency *uint64
+	PinParentCtl   []PinControl
 }
 type PinControl struct {
 	PinParentId uint32
@@ -551,6 +532,12 @@ func EncodePinControl(req PinParentDeviceCtl) ([]byte, error) {
 	ae.Uint32(DpllPinId, req.Id)
 	if req.PhaseAdjust != nil {
 		ae.Int32(DpllPinPhaseAdjust, *req.PhaseAdjust)
+	}
+	if req.EsyncFrequency != nil {
+		ae.Uint64(DpllPinPhaseAdjust, *req.EsyncFrequency)
+	}
+	if req.Frequency != nil {
+		ae.Uint64(DpllPinFrequency, *req.Frequency)
 	}
 	for _, pp := range req.PinParentCtl {
 		ae.Nested(DpllPinParentDevice, func(ae *netlink.AttributeEncoder) error {
