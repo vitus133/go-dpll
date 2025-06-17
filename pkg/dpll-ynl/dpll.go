@@ -62,10 +62,10 @@ func (c *Conn) DoDeviceIdGet(req DoDeviceIdGetRequest) (*DoDeviceIdGetReply, err
 	ae := netlink.NewAttributeEncoder()
 	// TODO: field "req.ModuleName", type "string"
 	if req.ClockId != 0 {
-		ae.Uint64(DPLL_A_CLOCK_ID, req.ClockId)
+		ae.Uint64(DpllClockID, req.ClockId)
 	}
 	if req.Type != 0 {
-		ae.Uint8(DPLL_A_TYPE, req.Type)
+		ae.Uint8(DpllType, req.Type)
 	}
 
 	b, err := ae.Encode()
@@ -75,7 +75,7 @@ func (c *Conn) DoDeviceIdGet(req DoDeviceIdGetRequest) (*DoDeviceIdGetReply, err
 
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_DEVICE_ID_GET,
+			Command: DpllCmdDeviceIdGet,
 			Version: c.f.Version,
 		},
 		Data: b,
@@ -96,7 +96,7 @@ func (c *Conn) DoDeviceIdGet(req DoDeviceIdGetRequest) (*DoDeviceIdGetReply, err
 		var reply DoDeviceIdGetReply
 		for ad.Next() {
 			switch ad.Type() {
-			case DPLL_A_ID:
+			case DpllID:
 				reply.Id = ad.Uint32()
 			}
 		}
@@ -137,22 +137,22 @@ func ParseDeviceReplies(msgs []genetlink.Message) ([]*DoDeviceGetReply, error) {
 		var reply DoDeviceGetReply
 		for ad.Next() {
 			switch ad.Type() {
-			case DPLL_A_ID:
+			case DpllID:
 				reply.Id = ad.Uint32()
-			case DPLL_A_MODULE_NAME:
+			case DpllModuleName:
 				reply.ModuleName = ad.String()
-			case DPLL_A_MODE:
+			case DpllMode:
 				reply.Mode = ad.Uint32()
-			case DPLL_A_MODE_SUPPORTED:
+			case DpllModeSupported:
 				reply.ModeSupported = append(reply.ModeSupported, ad.Uint32())
-			case DPLL_A_LOCK_STATUS:
+			case DpllLockStatus:
 				reply.LockStatus = ad.Uint32()
-			case DPLL_A_PAD:
-			case DPLL_A_TEMP:
+			case DpllAttPadding:
+			case DpllTemp:
 				reply.Temp = ad.Int32()
-			case DPLL_A_CLOCK_ID:
+			case DpllClockID:
 				reply.ClockId = ad.Uint64()
-			case DPLL_A_TYPE:
+			case DpllType:
 				reply.Type = ad.Uint32()
 			default:
 				log.Println("default", ad.Type(), len(ad.Bytes()), ad.Bytes())
@@ -171,7 +171,7 @@ func ParseDeviceReplies(msgs []genetlink.Message) ([]*DoDeviceGetReply, error) {
 func (c *Conn) DoDeviceGet(req DoDeviceGetRequest) (*DoDeviceGetReply, error) {
 	ae := netlink.NewAttributeEncoder()
 	if req.Id != 0 {
-		ae.Uint32(DPLL_A_ID, req.Id)
+		ae.Uint32(DpllID, req.Id)
 	}
 	// TODO: field "req.ModuleName", type "string"
 
@@ -182,7 +182,7 @@ func (c *Conn) DoDeviceGet(req DoDeviceGetRequest) (*DoDeviceGetReply, error) {
 
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_DEVICE_GET,
+			Command: DpllCmdDeviceGet,
 			Version: c.f.Version,
 		},
 		Data: b,
@@ -214,7 +214,7 @@ func (c *Conn) DumpDeviceGet() ([]*DoDeviceGetReply, error) {
 
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_DEVICE_GET,
+			Command: DpllCmdDeviceGet,
 			Version: c.f.Version,
 		},
 		Data: b,
@@ -261,37 +261,41 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 		var reply PinInfo
 		for ad.Next() {
 			switch ad.Type() {
-			case DPLL_A_PIN_CLOCK_ID:
-				reply.ClockId = ad.Uint64()
-			case DPLL_A_PIN_ID:
+			case DpllPinId:
 				reply.Id = ad.Uint32()
-			case DPLL_A_PIN_BOARD_LABEL:
+			case DpllPinParentId:
+				reply.ParentId = ad.Uint32()
+			case DpllPinModuleName:
+				reply.ModuleName = ad.String()
+			case DpllPinClockId:
+				reply.ClockId = ad.Uint64()
+			case DpllPinBoardLabel:
 				reply.BoardLabel = ad.String()
-			case DPLL_A_PIN_PANEL_LABEL:
+			case DpllPinPanelLabel:
 				reply.PanelLabel = ad.String()
-			case DPLL_A_PIN_PACKAGE_LABEL:
+			case DpllPinPackageLabel:
 				reply.PackageLabel = ad.String()
-			case DPLL_A_PIN_TYPE:
+			case DpllPinType:
 				reply.Type = ad.Uint32()
-			case DPLL_A_PIN_FREQUENCY:
+			case DpllPinFrequency:
 				reply.Frequency = ad.Uint64()
-			case DPLL_A_PIN_FREQUENCY_SUPPORTED:
+			case DpllPinFrequencySupported:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
 					var temp FrequencyRange
 					for ad.Next() {
 						switch ad.Type() {
-						case DPLL_A_PIN_FREQUENCY_MIN:
+						case DpllPinFrequencyMin:
 							temp.FrequencyMin = ad.Uint64()
-						case DPLL_A_PIN_FREQUENCY_MAX:
+						case DpllPinFrequencyMax:
 							temp.FrequencyMax = ad.Uint64()
 						}
 					}
 					reply.FrequencySupported = append(reply.FrequencySupported, temp)
 					return nil
 				})
-			case DPLL_A_PIN_CAPABILITIES:
+			case DpllPinCapabilities:
 				reply.Capabilities = ad.Uint32()
-			case DPLL_A_PIN_PARENT_DEVICE:
+			case DpllPinParentDevice:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
 					temp := PinParentDevice{
 						// Initialize phase offset to a max value, so later we can detect it has been updated
@@ -299,15 +303,15 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 					}
 					for ad.Next() {
 						switch ad.Type() {
-						case DPLL_A_PIN_PARENT_ID:
+						case DpllPinParentId:
 							temp.ParentId = ad.Uint32()
-						case DPLL_A_PIN_DIRECTION:
+						case DpllPinDirection:
 							temp.Direction = ad.Uint32()
-						case DPLL_A_PIN_PRIO:
+						case DpllPinPrio:
 							temp.Prio = ad.Uint32()
 						case DPLL_A_PIN_STATE:
 							temp.State = ad.Uint32()
-						case DPLL_A_PIN_PHASE_OFFSET:
+						case DpllPinPhaseOffset:
 							temp.PhaseOffset = ad.Int64()
 						}
 
@@ -315,34 +319,50 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 					reply.ParentDevice = append(reply.ParentDevice, temp)
 					return nil
 				})
-			case DPLL_A_PIN_PARENT_PIN:
+			case DpllPinParentPin:
 				ad.Nested(func(ad *netlink.AttributeDecoder) error {
 					var temp PinParentPin
 					for ad.Next() {
-
 						switch ad.Type() {
-						case DPLL_A_PIN_PARENT_ID:
+						case DpllPinParentId:
 							temp.ParentId = ad.Uint32()
 						case DPLL_A_PIN_STATE:
 							temp.State = ad.Uint32()
 						}
-
 					}
 					reply.ParentPin = append(reply.ParentPin, temp)
 					return nil
 				})
-			case DPLL_A_PIN_PHASE_ADJUST_MIN:
+			case DpllPinPhaseAdjustMin:
 				reply.PhaseAdjustMin = ad.Int32()
-			case DPLL_A_PIN_PHASE_ADJUST_MAX:
+			case DpllPinPhaseAdjustMax:
 				reply.PhaseAdjustMax = ad.Int32()
-			case DPLL_A_PIN_PHASE_ADJUST:
+			case DpllPinPhaseAdjust:
 				reply.PhaseAdjust = ad.Int32()
-			case DPLL_A_PIN_FRACTIONAL_FREQUENCY_OFFSET:
+			case DpllPinPhaseOffset:
+				reply.PhaseOffset = ad.Int64()
+			case DpllPinFractionalFrequencyOffset:
 				reply.FractionalFrequencyOffset = int(ad.Int32())
-			case DPLL_A_PIN_MODULE_NAME:
-				reply.ModuleName = ad.String()
+			case DpllPinEsyncFrequency:
+				reply.EsyncFrequency = ad.Int64()
+			case DpllPinEsyncFrequencySupported:
+				ad.Nested(func(ad *netlink.AttributeDecoder) error {
+					var temp FrequencyRange
+					for ad.Next() {
+						switch ad.Type() {
+						case DpllPinFrequencyMin:
+							temp.FrequencyMin = ad.Uint64()
+						case DpllPinFrequencyMax:
+							temp.FrequencyMax = ad.Uint64()
+						}
+					}
+					reply.EsyncFrequencySupported = append(reply.EsyncFrequencySupported, temp)
+					return nil
+				})
+			case DpllPinEsyncPulse:
+				reply.EsyncPulse = ad.Uint32()
 			default:
-				log.Println(ad.Bytes())
+				log.Printf("unrecognized type: %d\n", ad.Type())
 			}
 		}
 		if err := ad.Err(); err != nil {
@@ -356,7 +376,7 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 // DoPinGet wraps the "pin-get" operation:
 func (c *Conn) DoPinGet(req DoPinGetRequest) (*PinInfo, error) {
 	ae := netlink.NewAttributeEncoder()
-	ae.Uint32(DPLL_A_PIN_ID, req.Id)
+	ae.Uint32(DpllPinId, req.Id)
 
 	b, err := ae.Encode()
 	if err != nil {
@@ -365,7 +385,7 @@ func (c *Conn) DoPinGet(req DoPinGetRequest) (*PinInfo, error) {
 
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_PIN_GET,
+			Command: DpllCmdPinGet,
 			Version: c.f.Version,
 		},
 		Data: b,
@@ -389,7 +409,7 @@ func (c *Conn) DoPinGet(req DoPinGetRequest) (*PinInfo, error) {
 func (c *Conn) DumpPinGet() ([]*PinInfo, error) {
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_PIN_GET,
+			Command: DpllCmdPinGet,
 			Version: c.f.Version,
 		},
 	}
@@ -412,24 +432,54 @@ type DoPinGetRequest struct {
 	Id uint32
 }
 
-// PinInfo is used with the DoPinGet method.
+// PinInfoGet is used with the DoPinGet / DumpPinGet / monitor methods.
+/*
+{'board-label': 'OUT3PN-SYNCEREF',
+ 'capabilities': set(),
+ 'clock-id': 4179056,
+ 'esync-frequency': 0,
+ 'esync-pulse': 50,
+ 'frequency': 156250000,
+ 'frequency-supported': [{'frequency-max': 156250000,
+                          'frequency-min': 156250000}],
+ 'id': 0,
+ 'module-name': 'dpll_zl3073x',
+ 'package-label': 'OUT3',
+ 'parent-device': [{'direction': 'output',
+                    'parent-id': 0,
+                    'state': 'connected'}],
+ 'phase-adjust': 0,
+ 'phase-adjust-max': 2147483647,
+ 'phase-adjust-min': -2147483648,
+ 'type': 'synce-eth-port'}
+*/
 type PinInfo struct {
 	Id                        uint32
+	ParentId                  uint32
+	ModuleName                string
 	ClockId                   uint64
 	BoardLabel                string
 	PanelLabel                string
 	PackageLabel              string
 	Type                      uint32
+	Direction                 uint32
 	Frequency                 uint64
 	FrequencySupported        []FrequencyRange
+	FrequencyMin              uint64
+	FrequencyMax              uint64
+	Prio                      uint32
+	State                     uint32
 	Capabilities              uint32
 	ParentDevice              []PinParentDevice
 	ParentPin                 []PinParentPin
 	PhaseAdjustMin            int32
 	PhaseAdjustMax            int32
 	PhaseAdjust               int32
+	PhaseOffset               int64
 	FractionalFrequencyOffset int
-	ModuleName                string
+	EsyncFrequency            int64
+	EsyncFrequencySupported   []FrequencyRange
+	EsyncPulse                uint32
 }
 
 // FrequencyRange contains nested netlink attributes.
@@ -463,8 +513,8 @@ type PinPhaseAdjustRequest struct {
 // Set PhaseAdjust of a target pin
 func (c *Conn) PinPhaseAdjust(req PinPhaseAdjustRequest) error {
 	ae := netlink.NewAttributeEncoder()
-	ae.Uint32(DPLL_A_PIN_ID, req.Id)
-	ae.Int32(DPLL_A_PIN_PHASE_ADJUST, req.PhaseAdjust)
+	ae.Uint32(DpllPinId, req.Id)
+	ae.Int32(DpllPinPhaseAdjust, req.PhaseAdjust)
 
 	b, err := ae.Encode()
 	if err != nil {
@@ -473,7 +523,7 @@ func (c *Conn) PinPhaseAdjust(req PinPhaseAdjustRequest) error {
 
 	msg := genetlink.Message{
 		Header: genetlink.Header{
-			Command: DPLL_CMD_PIN_SET,
+			Command: DpllCmdPinSet,
 			Version: c.f.Version,
 		},
 		Data: b,
@@ -498,21 +548,21 @@ type PinControl struct {
 
 func EncodePinControl(req PinParentDeviceCtl) ([]byte, error) {
 	ae := netlink.NewAttributeEncoder()
-	ae.Uint32(DPLL_A_PIN_ID, req.Id)
+	ae.Uint32(DpllPinId, req.Id)
 	if req.PhaseAdjust != nil {
-		ae.Int32(DPLL_A_PIN_PHASE_ADJUST, *req.PhaseAdjust)
+		ae.Int32(DpllPinPhaseAdjust, *req.PhaseAdjust)
 	}
 	for _, pp := range req.PinParentCtl {
-		ae.Nested(DPLL_A_PIN_PARENT_DEVICE, func(ae *netlink.AttributeEncoder) error {
-			ae.Uint32(DPLL_A_PIN_PARENT_ID, pp.PinParentId)
+		ae.Nested(DpllPinParentDevice, func(ae *netlink.AttributeEncoder) error {
+			ae.Uint32(DpllPinParentId, pp.PinParentId)
 			if pp.State != nil {
 				ae.Uint32(DPLL_A_PIN_STATE, *pp.State)
 			}
 			if pp.Prio != nil {
-				ae.Uint32(DPLL_A_PIN_PRIO, *pp.Prio)
+				ae.Uint32(DpllPinPrio, *pp.Prio)
 			}
 			if pp.Direction != nil {
-				ae.Uint32(DPLL_A_PIN_DIRECTION, *pp.Direction)
+				ae.Uint32(DpllPinDirection, *pp.Direction)
 			}
 			return nil
 		})

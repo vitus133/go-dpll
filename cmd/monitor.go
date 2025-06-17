@@ -30,9 +30,9 @@ var monitorCmd = &cobra.Command{
 		}
 		defer conn.Close()
 
-		mcastId, found := conn.GetMcastGroupId(dpll.DPLL_MCGRP_MONITOR)
+		mcastId, found := conn.GetMcastGroupId(dpll.DpllMCGRPMonitor)
 		if !found {
-			log.Panic("multicast ID ", dpll.DPLL_MCGRP_MONITOR, " not found")
+			log.Panic("multicast ID ", dpll.DpllMCGRPMonitor, " not found")
 		}
 
 		c := conn.GetGenetlinkConn()
@@ -55,7 +55,7 @@ var monitorCmd = &cobra.Command{
 
 			for _, msg := range msgs {
 				switch msg.Header.Command {
-				case dpll.DPLL_CMD_DEVICE_CHANGE_NTF:
+				case dpll.DpllCmdDeviceChangeNtf:
 					if *monType != "all" && *monType != "devices" {
 						continue
 					}
@@ -70,7 +70,7 @@ var monitorCmd = &cobra.Command{
 						}
 						fmt.Printf("%s\n", string(dev))
 					}
-				case dpll.DPLL_CMD_PIN_CHANGE_NTF:
+				case dpll.DpllCmdPinChangeNtf:
 					if *monType != "all" && *monType != "pins" {
 						continue
 					}

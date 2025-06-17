@@ -22,9 +22,9 @@ attributes, such as priority, direction or output mode. For example:
 To set pin ID 50, parent IDs 6 and 7 to disconnected:
 	./dpll-cli setPin -i 50 -d 6 -d 7 -s 2,2
 (Pin state: 
-	DPLL_A_PIN_STATE_CONNECTED    = 1
-	DPLL_A_PIN_STATE_DISCONNECTED = 2
-	DPLL_A_PIN_STATE_SELECTABLE   = 3)
+	PinStateConnected    = 1
+	PinStateDisconnected = 2
+	PinStateSelectable   = 3)
 To set pin priority of pin ID 44 pin parent IDs 6 and 7 to 0:
 	./dpll-cli setPin -i 44 -d 6,7 -p 0,0
 To set phase adjust of pin ID 44 to 600ns:
@@ -68,7 +68,7 @@ Flags "prio" and "pinState" are mutually exclusive.
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = conn.SendCommand(dpll.DPLL_CMD_PIN_SET, data)
+		err = conn.SendCommand(dpll.DpllCmdPinSet, data)
 		if err != nil {
 			log.Fatal(err)
 		}
