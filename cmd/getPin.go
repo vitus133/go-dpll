@@ -19,13 +19,13 @@ var getPinCmd = &cobra.Command{
 	Short: "Get pin properties by ID",
 	Long: `Returns pin properties by pin ID
 	
-	dpll-cli getPin --pinId=23. This also accepts a number of IDs in a CpuSet format, e.g. 1,3-8,19`,
+	dpll-cli getPin --pinID=23. This also accepts a number of IDs in a CpuSet format, e.g. 1,3-8,19`,
 	Run: func(cmd *cobra.Command, args []string) {
-		inp, err := cmd.Flags().GetString("pinId")
+		inp, err := cmd.Flags().GetString("pinID")
 		if err != nil {
 			log.Fatal(err)
 		}
-		ids, err := parsePinIds(inp)
+		ids, err := parsePinIDs(inp)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,7 +35,7 @@ var getPinCmd = &cobra.Command{
 		}
 		defer conn.Close()
 		for _, id := range ids {
-			pinReply, err := conn.DoPinGet(dpll.DoPinGetRequest{Id: uint32(id)})
+			pinReply, err := conn.DoPinGet(dpll.DoPinGetRequest{ID: uint32(id)})
 			if err != nil {
 				log.Panic(err)
 			}
@@ -61,11 +61,11 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// getPinCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	getPinCmd.Flags().StringP("pinId", "p", "", "Pin ID(s)")
-	getPinCmd.MarkFlagRequired("pinId")
+	getPinCmd.Flags().StringP("pinID", "p", "", "Pin ID(s)")
+	getPinCmd.MarkFlagRequired("pinID")
 }
 
-func parsePinIds(input string) ([]int, error) {
+func parsePinIDs(input string) ([]int, error) {
 	l, err := cpuset.Parse(input)
 	if err != nil {
 		return []int{}, err

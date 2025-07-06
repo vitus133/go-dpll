@@ -30,13 +30,13 @@ var monitorCmd = &cobra.Command{
 		}
 		defer conn.Close()
 
-		mcastId, found := conn.GetMcastGroupId(dpll.DpllMCGRPMonitor)
+		mcastID, found := conn.GetMcastGroupID(dpll.DpllMCGRPMonitor)
 		if !found {
 			log.Panic("multicast ID ", dpll.DpllMCGRPMonitor, " not found")
 		}
 
 		c := conn.GetGenetlinkConn()
-		err = c.JoinGroup(mcastId)
+		err = c.JoinGroup(mcastID)
 		if err != nil {
 			log.Panic(err)
 		}

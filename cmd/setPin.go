@@ -33,13 +33,13 @@ Flags "prio" and "pinState" are mutually exclusive.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("setPin called")
-		if (len(prio) > 0 && len(parentId) != len(prio)) ||
-			(len(pinState) > 0 && len(parentId) != len(pinState)) {
+		if (len(prio) > 0 && len(parentID) != len(prio)) ||
+			(len(pinState) > 0 && len(parentID) != len(pinState)) {
 			log.Fatalf("number of parent IDs doesn't match pin priorities or states!")
 		}
 		pc := dpll.PinParentDeviceCtl{
-			Id:           *pinId,
-			PinParentCtl: make([]dpll.PinControl, len(parentId)),
+			ID:           *pinID,
+			PinParentCtl: make([]dpll.PinControl, len(parentID)),
 		}
 		if *phaseAdjust != math.MaxInt32 {
 			pc.PhaseAdjust = phaseAdjust
@@ -50,8 +50,8 @@ Flags "prio" and "pinState" are mutually exclusive.
 		if *frequency != 0 {
 			pc.Frequency = frequency
 		}
-		for i, pid := range parentId {
-			pc.PinParentCtl[i].PinParentId = uint32(pid)
+		for i, pid := range parentID {
+			pc.PinParentCtl[i].PinParentID = uint32(pid)
 			if len(pinState) > 0 {
 				pc.PinParentCtl[i].State = func(st uint) *uint32 {
 					state := uint32(st)
@@ -80,20 +80,20 @@ Flags "prio" and "pinState" are mutually exclusive.
 	},
 }
 
-var pinId *uint32
+var pinID *uint32
 var phaseAdjust *int32
 var esyncFrequency *uint64
 var frequency *uint64
-var parentId []uint
+var parentID []uint
 var prio []uint
 var pinState []uint
 
 func init() {
 	rootCmd.AddCommand(setPinCmd)
-	pinId = setPinCmd.Flags().Uint32P("pinId", "i", 0, "Pin ID")
-	setPinCmd.MarkFlagRequired("pinId")
+	pinID = setPinCmd.Flags().Uint32P("pinID", "i", 0, "Pin ID")
+	setPinCmd.MarkFlagRequired("pinID")
 	phaseAdjust = setPinCmd.Flags().Int32P("phaseAdjust", "j", math.MaxInt32, "Phase adjustment in ps")
-	setPinCmd.Flags().UintSliceVarP(&parentId, "parentId", "d", []uint{}, "Pin parent ID(s)")
+	setPinCmd.Flags().UintSliceVarP(&parentID, "parentID", "d", []uint{}, "Pin parent ID(s)")
 	setPinCmd.Flags().UintSliceVarP(&prio, "prio", "p", []uint{}, "Pin priorit(y/ies)")
 	setPinCmd.Flags().UintSliceVarP(&pinState, "pinState", "s", []uint{}, "Pin State(s)")
 	setPinCmd.MarkFlagsMutuallyExclusive("prio", "pinState")

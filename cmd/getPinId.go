@@ -11,15 +11,15 @@ import (
 	dpll "github.com/vitus133/go-dpll/pkg/dpll-ynl"
 )
 
-// getPinIdCmd represents the getPinId command
-var getPinIdCmd = &cobra.Command{
-	Use:   "getPinId",
+// getPinIDCmd represents the getPinID command
+var getPinIDCmd = &cobra.Command{
+	Use:   "getPinID",
 	Short: "Get pin ID by clock ID and board label",
 	Long: `This command will get pin ID by clock ID and board label:
 	
-	dpll-cli getPinId --clockId=0x507c6fffff1fb484 --boardLabel=GNSS-1PPS`,
+	dpll-cli getPinID --clockID=0x507c6fffff1fb484 --boardLabel=GNSS-1PPS`,
 	Run: func(cmd *cobra.Command, args []string) {
-		clockId, _ := cmd.Flags().GetUint64("clockId")
+		clockID, _ := cmd.Flags().GetUint64("clockID")
 		boardLabel, _ := cmd.Flags().GetString("boardLabel")
 
 		conn, err := dpll.Dial(nil)
@@ -32,28 +32,28 @@ var getPinIdCmd = &cobra.Command{
 			log.Panic(err)
 		}
 		for _, pin := range pinReplies {
-			if pin.BoardLabel == boardLabel && pin.ClockId == clockId {
-				fmt.Println(pin.Id)
+			if pin.BoardLabel == boardLabel && pin.ClockID == clockID {
+				fmt.Println(pin.ID)
 				return
 			}
 		}
-		fmt.Println("pin with clockId ", clockId, " and board label ", boardLabel, "not found")
+		fmt.Println("pin with clockID ", clockID, " and board label ", boardLabel, "not found")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(getPinIdCmd)
+	rootCmd.AddCommand(getPinIDCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// getPinIdCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// getPinIDCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	getPinIdCmd.Flags().StringP("boardLabel", "l", "", "BoardLabel of the pin")
-	getPinIdCmd.MarkFlagRequired("boardLabel")
-	getPinIdCmd.Flags().Uint64P("clockId", "i", 0, "Clock ID")
-	getPinIdCmd.MarkFlagRequired("clockId")
+	getPinIDCmd.Flags().StringP("boardLabel", "l", "", "BoardLabel of the pin")
+	getPinIDCmd.MarkFlagRequired("boardLabel")
+	getPinIDCmd.Flags().Uint64P("clockID", "i", 0, "Clock ID")
+	getPinIDCmd.MarkFlagRequired("clockID")
 }
