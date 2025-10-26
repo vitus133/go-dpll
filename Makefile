@@ -28,4 +28,6 @@ run:	## Run (no build). This is using sudo and assuming go is installed in /usr/
 	sudo /usr/local/go/bin/go run main.go
 image: ## build and push container image
 	podman build --arch=x86_64 -t quay.io/vgrinber/tools:dpll -f Containerfile . && podman push quay.io/vgrinber/tools:dpll
+next: ## build and push container image for net-next
+	podman build --secret id=rh_user,src=.rh_user --secret id=rh_pass,src=.rh_pass --arch=x86_64 -t quay.io/vgrinber/tools:dpll-next -f Containerfile.net-next . && podman push quay.io/vgrinber/tools:dpll-next
 all: clean tidy build ## Clean, tidy, and build

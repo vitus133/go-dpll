@@ -1,2 +1,6 @@
 dpll-cli
 .DS_Store
+.vscode/
+.rh_user
+.rh_pass
+podman-build-secret*
