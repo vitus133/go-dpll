@@ -13,9 +13,9 @@ RUN --mount=type=secret,id=rh_user --mount=type=secret,id=rh_pass \
     /bin/dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
     python3-pip lshw pciutils git ethtool jq linuxptp gcc make hwdata synce4l gpsd-minimal gpsd-minimal-clients i2c-tools && dnf clean all && \
     ln -s /usr/bin/gpspipe /usr/local/bin/gpspipe && ln -s /usr/sbin/gpsd /usr/local/sbin/gpsd && ln -s /usr/bin/ubxtool /usr/local/bin/ubxtool &&\
-    subscription-manager unregister && subscription-manager clean
-RUN git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git
-RUN pip install -r /net-next/tools/net/ynl/requirements.txt 
+    subscription-manager unregister && subscription-manager clean &&\
+    git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git &&\ 
+    pip install -r /net-next/tools/net/ynl/requirements.txt 
 
 COPY --from=builder /opt/app-root/src/dpll-cli /usr/local/bin/
 WORKDIR /net-next/tools/net/ynl/pyynl
