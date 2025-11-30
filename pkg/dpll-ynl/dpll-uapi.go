@@ -44,6 +44,8 @@ const (
 	DpllType
 	DpllLockStatusError
 	DpllClockQualityLevel
+	DpllPhaseOffsetMonitor
+	DpllPhaseOffsetAverageFactor
 )
 
 // DpllPinTypes defines the attribute-set for dpll_a_pin
@@ -122,6 +124,31 @@ const (
 	LockStatusFFOTooHigh
 )
 
+// GetLockStatusError returns lock status error as a string
+func GetLockStatusError(le uint32) string {
+	lockStatusErrorMap := map[uint32]string{
+		LockStatusErrorNone:      "none",
+		LockStatusErrorUndefined: "undefined",
+		LockStatusErrorMediaDown: "media-down",
+		LockStatusFFOTooHigh:     "fto-too-high",
+	}
+	return lockStatusErrorMap[le]
+}
+
+const (
+	PhaseOffsetMonitorEnabled  = 1
+	PhaseOffsetMonitorDisabled = 2
+)
+
+// GetPhaseOffsetMonitor returns phase offset monitor as a string
+func GetPhaseOffsetMonitor(po uint32) string {
+	phaseOffsetMonitorMap := map[uint32]string{
+		PhaseOffsetMonitorEnabled:  "enabled",
+		PhaseOffsetMonitorDisabled: "disabled",
+	}
+	return phaseOffsetMonitorMap[po]
+}
+
 // ClockQualityLevel defines possible clock quality levels when on holdover
 const (
 	ClockQualityLevel = iota
@@ -134,6 +161,33 @@ const (
 	ClockQualityLevelITUOpt1EEEC
 	ClockQualityLevelItuOpt1EPRC
 )
+
+func GetClockQualityLevels(cqs []uint32) string {
+	clockQualityLevels := make([]string, 0)
+	for _, cq := range cqs {
+		clockQualityLevels = append(clockQualityLevels, GetClockQualityLevel(cq))
+	}
+	return strings.Join(clockQualityLevels, ",")
+}
+
+func GetClockQualityLevel(cq uint32) string {
+	clockQualityLevelMap := map[uint32]string{
+		ClockQualityLevel:             "itu-opt1-prc",
+		ClockQualityLevelITUOpt1PRC:   "itu-opt1-prc",
+		ClockQualityLevelITUOpt1SSUA:  "itu-opt1-ssua",
+		ClockQualityLevelITUOpt1SSUB:  "itu-opt1-ssub",
+		ClockQualityLevelITUOpt1EEC1:  "itu-opt1-eec1",
+		ClockQualityLevelITUOpt1PRTC:  "itu-opt1-prtc",
+		ClockQualityLevelITUOpt1EPRTC: "itu-opt1-eprtc",
+		ClockQualityLevelITUOpt1EEEC:  "itu-opt1-eeec",
+		ClockQualityLevelItuOpt1EPRC:  "itu-opt1-eprc",
+	}
+	cqStr, found := clockQualityLevelMap[cq]
+	if found {
+		return cqStr
+	}
+	return ""
+}
 
 // DpllTypeAttribute defines DPLL types
 const (
@@ -187,15 +241,19 @@ func GetMode(md uint32) string {
 
 // DpllStatusHR represents human-readable DPLL status
 type DpllStatusHR struct {
-	Timestamp     time.Time `json:"timestamp"`
-	ID            uint32    `json:"id"`
-	ModuleName    string    `json:"moduleName"`
-	Mode          string    `json:"mode"`
-	ModeSupported string    `json:"modeSupported"`
-	LockStatus    string    `json:"lockStatus"`
-	ClockID       string    `json:"clockId"`
-	Type          string    `json:"type"`
-	Temp          float64   `json:"temp"`
+	Timestamp                time.Time `json:"timestamp"`
+	ID                       uint32    `json:"id"`
+	ModuleName               string    `json:"moduleName"`
+	Mode                     string    `json:"mode"`
+	ModeSupported            string    `json:"modeSupported"`
+	LockStatus               string    `json:"lockStatus"`
+	ClockID                  string    `json:"clockId"`
+	Type                     string    `json:"type"`
+	Temp                     float64   `json:"temp,omitempty"`
+	LockStatusError          string    `json:"lockStatusError,omitempty"`
+	ClockQualityLevel        string    `json:"clockQualityLevel,omitempty"`
+	PhaseOffsetMonitor       string    `json:"phaseOffsetMonitor,omitempty"`
+	PhaseOffsetAverageFactor uint32    `json:"phaseOffsetAverageFactor,omitempty"`
 }
 
 // GetDpllStatusHR returns human-readable DPLL status
@@ -205,15 +263,19 @@ func GetDpllStatusHR(reply *DoDeviceGetReply, timestamp time.Time) ([]byte, erro
 		modes = append(modes, GetMode(md))
 	}
 	hr := DpllStatusHR{
-		Timestamp:     timestamp,
-		ID:            reply.ID,
-		ModuleName:    reply.ModuleName,
-		Mode:          GetMode(reply.Mode),
-		ModeSupported: fmt.Sprint(strings.Join(modes[:], ",")),
-		LockStatus:    GetLockStatus(reply.LockStatus),
-		ClockID:       fmt.Sprintf("0x%x", reply.ClockID),
-		Type:          GetDpllType(reply.Type),
-		Temp:          float64(reply.Temp) / DpllTemperatureDivider,
+		Timestamp:                timestamp,
+		ID:                       reply.ID,
+		ModuleName:               reply.ModuleName,
+		Mode:                     GetMode(reply.Mode),
+		ModeSupported:            fmt.Sprint(strings.Join(modes[:], ",")),
+		LockStatus:               GetLockStatus(reply.LockStatus),
+		ClockID:                  fmt.Sprintf("0x%x", reply.ClockID),
+		Type:                     GetDpllType(reply.Type),
+		Temp:                     float64(reply.Temp) / DpllTemperatureDivider,
+		LockStatusError:          GetLockStatusError(reply.LockStatusError),
+		ClockQualityLevel:        GetClockQualityLevels(reply.ClockQualityLevel),
+		PhaseOffsetMonitor:       GetPhaseOffsetMonitor(reply.PhaseOffsetMonitor),
+		PhaseOffsetAverageFactor: reply.PhaseOffsetAverageFactor,
 	}
 	return json.Marshal(hr)
 }

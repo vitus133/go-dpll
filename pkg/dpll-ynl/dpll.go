@@ -153,6 +153,14 @@ func ParseDeviceReplies(msgs []genetlink.Message) ([]*DoDeviceGetReply, error) {
 				reply.ClockID = ad.Uint64()
 			case DpllType:
 				reply.Type = ad.Uint32()
+			case DpllLockStatusError:
+				reply.LockStatusError = ad.Uint32()
+			case DpllClockQualityLevel:
+				reply.ClockQualityLevel = append(reply.ClockQualityLevel, ad.Uint32())
+			case DpllPhaseOffsetMonitor:
+				reply.PhaseOffsetMonitor = ad.Uint32()
+			case DpllPhaseOffsetAverageFactor:
+				reply.PhaseOffsetAverageFactor = ad.Uint32()
 			default:
 				log.Println("default", ad.Type(), len(ad.Bytes()), ad.Bytes())
 			}
@@ -239,14 +247,18 @@ type DoDeviceGetRequest struct {
 
 // DoDeviceGetReply is used with the DoDeviceGet method.
 type DoDeviceGetReply struct {
-	ID            uint32
-	ModuleName    string
-	Mode          uint32
-	ModeSupported []uint32
-	LockStatus    uint32
-	Temp          int32
-	ClockID       uint64
-	Type          uint32
+	ID                       uint32
+	ModuleName               string
+	Mode                     uint32
+	ModeSupported            []uint32
+	LockStatus               uint32
+	Temp                     int32
+	ClockID                  uint64
+	Type                     uint32
+	LockStatusError          uint32
+	ClockQualityLevel        []uint32
+	PhaseOffsetMonitor       uint32
+	PhaseOffsetAverageFactor uint32
 }
 
 func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
