@@ -372,6 +372,20 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 				})
 			case DpllPinEsyncPulse:
 				reply.EsyncPulse = ad.Uint32()
+			case DpllPinReferenceSync:
+				ad.Nested(func(ad *netlink.AttributeDecoder) error {
+					var temp ReferenceSync
+					for ad.Next() {
+						switch ad.Type() {
+						case DpllPinID:
+							temp.ID = ad.Uint32()
+						}
+					}
+					reply.ReferenceSync = append(reply.ReferenceSync, temp)
+					return nil
+				})
+			case DpllPinPhaseAdjustGran:
+				reply.PhaseAdjustGran = ad.Uint32()
 			default:
 				log.Printf("unrecognized type: %d\n", ad.Type())
 			}
@@ -471,12 +485,21 @@ type PinInfo struct {
 	EsyncFrequency            int64
 	EsyncFrequencySupported   []FrequencyRange
 	EsyncPulse                uint32
+	ReferenceSync             []ReferenceSync
+	PhaseAdjustGran           uint32
 }
 
 // FrequencyRange contains nested netlink attributes.
 type FrequencyRange struct {
 	FrequencyMin uint64 `json:"frequencyMin"`
 	FrequencyMax uint64 `json:"frequencyMax"`
+}
+
+// Details of a pin that can be bound to create a
+// reference-sync pin pair
+type ReferenceSync struct {
+	ID    uint32 `json:"id"`
+	State uint32 `json:"state"`
 }
 
 // PinParentDevice contains nested netlink attributes.

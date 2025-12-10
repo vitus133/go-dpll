@@ -38,7 +38,7 @@ Flags "prio" and "pinState" are mutually exclusive.
 			log.Fatalf("number of parent IDs doesn't match pin priorities or states!")
 		}
 		pc := dpll.PinParentDeviceCtl{
-			ID:           *pinID,
+			ID:           *ID,
 			PinParentCtl: make([]dpll.PinControl, len(parentID)),
 		}
 		if *phaseAdjust != math.MaxInt32 {
@@ -80,7 +80,7 @@ Flags "prio" and "pinState" are mutually exclusive.
 	},
 }
 
-var pinID *uint32
+var ID *uint32
 var phaseAdjust *int32
 var esyncFrequency *uint64
 var frequency *uint64
@@ -90,8 +90,8 @@ var pinState []uint
 
 func init() {
 	rootCmd.AddCommand(setPinCmd)
-	pinID = setPinCmd.Flags().Uint32P("pinID", "i", 0, "Pin ID")
-	setPinCmd.MarkFlagRequired("pinID")
+	ID = setPinCmd.Flags().Uint32P("id", "i", 0, "Pin ID")
+	setPinCmd.MarkFlagRequired("id")
 	phaseAdjust = setPinCmd.Flags().Int32P("phaseAdjust", "j", math.MaxInt32, "Phase adjustment in ps")
 	setPinCmd.Flags().UintSliceVarP(&parentID, "parentID", "d", []uint{}, "Pin parent ID(s)")
 	setPinCmd.Flags().UintSliceVarP(&prio, "prio", "p", []uint{}, "Pin priorit(y/ies)")

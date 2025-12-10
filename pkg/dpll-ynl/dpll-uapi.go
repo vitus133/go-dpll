@@ -79,6 +79,8 @@ const (
 	DpllPinEsyncFrequency
 	DpllPinEsyncFrequencySupported
 	DpllPinEsyncPulse
+	DpllPinReferenceSync
+	DpllPinPhaseAdjustGran
 )
 
 // DpllCmds defines DPLL subsystem commands encoding
@@ -284,24 +286,26 @@ func GetDpllStatusHR(reply *DoDeviceGetReply, timestamp time.Time) ([]byte, erro
 type PinInfoHR struct {
 	Timestamp                 time.Time           `json:"timestamp"`
 	ID                        uint32              `json:"id"`
-	ModuleName                string              `json:"moduleName"`
+	ModuleName                string              `json:"moduleName,omitempty"`
 	ClockID                   string              `json:"clockId"`
-	BoardLabel                string              `json:"boardLabel"`
-	PanelLabel                string              `json:"panelLabel"`
-	PackageLabel              string              `json:"packageLabel"`
-	Type                      string              `json:"type"`
-	Frequency                 uint64              `json:"frequency"`
-	FrequencySupported        []FrequencyRange    `json:"frequencySupported"`
-	Capabilities              string              `json:"capabilities"`
-	ParentDevice              []PinParentDeviceHR `json:"pinParentDevice"`
-	ParentPin                 []PinParentPinHR    `json:"pinParentPin"`
-	PhaseAdjustMin            int32               `json:"phaseAdjustMin"`
-	PhaseAdjustMax            int32               `json:"phaseAdjustMax"`
+	BoardLabel                string              `json:"boardLabel,omitempty"`
+	PanelLabel                string              `json:"panelLabel,omitempty"`
+	PackageLabel              string              `json:"packageLabel,omitempty"`
+	Type                      string              `json:"type,omitempty"`
+	Frequency                 uint64              `json:"frequency,omitempty"`
+	FrequencySupported        []FrequencyRange    `json:"frequencySupported,omitempty"`
+	Capabilities              string              `json:"capabilities,omitempty"`
+	ParentDevice              []PinParentDeviceHR `json:"pinParentDevice,omitempty"`
+	ParentPin                 []PinParentPinHR    `json:"pinParentPin,omitempty"`
+	PhaseAdjustMin            int32               `json:"phaseAdjustMin,omitempty"`
+	PhaseAdjustMax            int32               `json:"phaseAdjustMax,omitempty"`
 	PhaseAdjust               int32               `json:"phaseAdjust"`
-	FractionalFrequencyOffset int                 `json:"fractionalFrequencyOffset"`
-	EsyncFrequency            int64               `json:"esyncFrequency"`
-	EsyncFrequencySupported   []FrequencyRange    `json:"esyncFrequencySupported"`
-	EsyncPulse                int64               `json:"esyncPulse"`
+	FractionalFrequencyOffset int                 `json:"fractionalFrequencyOffset,omitempty"`
+	EsyncFrequency            int64               `json:"esyncFrequency,omitempty"`
+	EsyncFrequencySupported   []FrequencyRange    `json:"esyncFrequencySupported,omitempty"`
+	EsyncPulse                int64               `json:"esyncPulse,omitempty"`
+	ReferenceSync             []ReferenceSync     `json:"referenceSync,omitempty"`
+	PhaseAdjustGran           uint32              `json:"phaseAdjustGran,omitempty"`
 }
 
 // PinParentDeviceHR contains nested netlink attributes.
@@ -417,6 +421,8 @@ func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 		EsyncFrequency:            reply.EsyncFrequency,
 		EsyncFrequencySupported:   make([]FrequencyRange, 0),
 		EsyncPulse:                int64(reply.EsyncPulse),
+		ReferenceSync:             make([]ReferenceSync, 0),
+		PhaseAdjustGran:           reply.PhaseAdjustGran,
 	}
 	for i := 0; i < len(reply.ParentDevice); i++ {
 		hr.ParentDevice = append(hr.ParentDevice, PinParentDeviceHR{
@@ -444,6 +450,12 @@ func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 		hr.EsyncFrequencySupported = append(hr.EsyncFrequencySupported, FrequencyRange{
 			FrequencyMin: reply.EsyncFrequencySupported[i].FrequencyMin,
 			FrequencyMax: reply.EsyncFrequencySupported[i].FrequencyMax,
+		})
+	}
+	for i := 0; i < len(reply.ReferenceSync); i++ {
+		hr.ReferenceSync = append(hr.ReferenceSync, ReferenceSync{
+			ID:    reply.ReferenceSync[i].ID,
+			State: reply.ReferenceSync[i].State,
 		})
 	}
 	return json.Marshal(hr)
