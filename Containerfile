@@ -1,4 +1,4 @@
-FROM registry.redhat.io/rhel9/go-toolset:1.25 AS builder
+FROM registry.redhat.io/rhel9/go-toolset:latest AS builder
 COPY . .
 RUN make build
 
@@ -10,7 +10,7 @@ RUN --mount=type=secret,id=rh_user --mount=type=secret,id=rh_pass \
     user="$(cat /run/secrets/rh_user)" && \
     pass="$(base64 -d /run/secrets/rh_pass)" && \
     subscription-manager register --username "${user}" --password "${pass}" && \
-    /bin/dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+    /bin/dnf install -y man-db coreutils-common https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
     python3-pip lshw pciutils git ethtool jq linuxptp gcc make hwdata synce4l gpsd-minimal gpsd-minimal-clients i2c-tools && dnf clean all && \
     ln -s /usr/bin/gpspipe /usr/local/bin/gpspipe && ln -s /usr/sbin/gpsd /usr/local/sbin/gpsd && ln -s /usr/bin/ubxtool /usr/local/bin/ubxtool &&\
     subscription-manager unregister && subscription-manager clean &&\
