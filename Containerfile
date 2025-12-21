@@ -11,7 +11,7 @@ RUN --mount=type=secret,id=rh_user --mount=type=secret,id=rh_pass \
     pass="$(base64 -d /run/secrets/rh_pass)" && \
     subscription-manager register --username "${user}" --password "${pass}" && \
     /bin/dnf install -y man-db coreutils-common https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-    python3-pip lshw pciutils git ethtool jq linuxptp gcc make hwdata synce4l gpsd-minimal gpsd-minimal-clients i2c-tools && dnf clean all && \
+    python3-pip lshw pciutils sysstat git ethtool jq linuxptp gcc make hwdata synce4l gpsd-minimal gpsd-minimal-clients i2c-tools && dnf clean all && \
     ln -s /usr/bin/gpspipe /usr/local/bin/gpspipe && ln -s /usr/sbin/gpsd /usr/local/sbin/gpsd && ln -s /usr/bin/ubxtool /usr/local/bin/ubxtool &&\
     subscription-manager unregister && subscription-manager clean &&\
     git clone --depth=1 https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git &&\ 
