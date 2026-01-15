@@ -2,15 +2,23 @@
 
 This repo helps to build a container image for netlink DPLL debug
 
-## Bulid ##
+## Build ##
 
 ```bash
 export IMG='quay.io/vgrinber/tools:dpll'
 ```
 (replace with your repository)
 
+**Note:** The Containerfile requires Red Hat subscription credentials to install packages. Ensure you have `.rh_user` and `.rh_pass` files in the project root.
+
 ```bash
-podman build -t $IMG --no-cache -f Containerfile  . && podman push $IMG
+podman build --secret id=rh_user,src=.rh_user --secret id=rh_pass,src=.rh_pass -t $IMG --no-cache -f Containerfile . && podman push $IMG
+```
+
+Alternatively, use the Makefile:
+```bash
+make next  # Builds and pushes dpll-next image
+make image # Builds and pushes dpll image (tags dpll-next as dpll)
 ```
 
 ## Use ##
