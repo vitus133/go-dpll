@@ -26,7 +26,10 @@ tidy:	## Clean dependencies
 	go mod tidy && go mod vendor
 run:	## Run (no build). This is using sudo and assuming go is installed in /usr/local/
 	sudo /usr/local/go/bin/go run main.go
-image: next ## build and push container image
-next: ## build and push container image for net-next
-	podman build --secret id=rh_user,src=.rh_user --secret id=rh_pass,src=.rh_pass --arch=x86_64 -t quay.io/vgrinber/tools:dpll -f Containerfile . && podman push quay.io/vgrinber/tools:dpll
-all: clean tidy build ## Clean, tidy, and build
+
+image: ## build container image
+	podman build --secret id=rh_user,src=.rh_user --secret id=rh_pass,src=.rh_pass --arch=x86_64 -t quay.io/vgrinber/tools:dpll -f Containerfile .
+
+push: ## build and push container image for net-next
+	podman push quay.io/vgrinber/tools:dpll
+all: clean tidy image push ## Clean, tidy, build, and push
