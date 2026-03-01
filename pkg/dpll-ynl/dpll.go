@@ -386,6 +386,8 @@ func ParsePinReplies(msgs []genetlink.Message) ([]*PinInfo, error) {
 				})
 			case DpllPinPhaseAdjustGran:
 				reply.PhaseAdjustGran = ad.Uint32()
+			case DpllPinFractionalFrequencyOffsetPPT:
+				reply.FractionalFrequencyOffsetPPT = int(ad.Int32())
 			default:
 				log.Printf("unrecognized type: %d\n", ad.Type())
 			}
@@ -482,6 +484,7 @@ type PinInfo struct {
 	PhaseAdjust               int32
 	PhaseOffset               int64
 	FractionalFrequencyOffset int
+	FractionalFrequencyOffsetPPT int
 	EsyncFrequency            int64
 	EsyncFrequencySupported   []FrequencyRange
 	EsyncPulse                uint32
