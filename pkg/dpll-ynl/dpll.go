@@ -498,8 +498,7 @@ type FrequencyRange struct {
 	FrequencyMax uint64 `json:"frequencyMax"`
 }
 
-// Details of a pin that can be bound to create a
-// reference-sync pin pair
+// ReferenceSync represents a reference-sync pin pair.
 type ReferenceSync struct {
 	ID    uint32 `json:"id"`
 	State uint32 `json:"state"`
@@ -572,7 +571,7 @@ func EncodePinControl(req PinParentDeviceCtl) ([]byte, error) {
 		ae.Int32(DpllPinPhaseAdjust, *req.PhaseAdjust)
 	}
 	if req.EsyncFrequency != nil {
-		ae.Uint64(DpllPinPhaseAdjust, *req.EsyncFrequency)
+		ae.Uint64(DpllPinEsyncFrequency, *req.EsyncFrequency)
 	}
 	if req.Frequency != nil {
 		ae.Uint64(DpllPinFrequency, *req.Frequency)

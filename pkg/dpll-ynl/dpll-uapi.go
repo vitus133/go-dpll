@@ -138,9 +138,11 @@ func GetLockStatusError(le uint32) string {
 	return lockStatusErrorMap[le]
 }
 
+// PhaseOffsetMonitor defines phase offset monitor enable / disable states.
 const (
-	PhaseOffsetMonitorEnabled  = 1
-	PhaseOffsetMonitorDisabled = 2
+	PhaseOffsetMonitorAttribute = iota
+	PhaseOffsetMonitorEnabled
+	PhaseOffsetMonitorDisabled
 )
 
 // GetPhaseOffsetMonitor returns phase offset monitor as a string
@@ -165,6 +167,7 @@ const (
 	ClockQualityLevelItuOpt1EPRC
 )
 
+// GetClockQualityLevels returns clock quality levels as a string
 func GetClockQualityLevels(cqs []uint32) string {
 	clockQualityLevels := make([]string, 0)
 	for _, cq := range cqs {
@@ -173,6 +176,7 @@ func GetClockQualityLevels(cqs []uint32) string {
 	return strings.Join(clockQualityLevels, ",")
 }
 
+// GetClockQualityLevel returns clock quality level as a string
 func GetClockQualityLevel(cq uint32) string {
 	clockQualityLevelMap := map[uint32]string{
 		ClockQualityLevel:             "itu-opt1-prc",
@@ -346,14 +350,23 @@ func GetPinState(s uint32) string {
 	return ""
 }
 
+// Defines possible pin types
+const (
+	PinTypeMUX   = 1
+	PinTypeEXT   = 2
+	PinTypeSYNCE = 3
+	PinTypeINT   = 4
+	PinTypeGNSS  = 5
+)
+
 // GetPinType returns DPLL pin type as a string
 func GetPinType(tp uint32) string {
 	typeMap := map[int]string{
-		1: "mux",
-		2: "ext",
-		3: "synce-eth-port",
-		4: "int-oscillator",
-		5: "gnss",
+		PinTypeMUX:   "mux",
+		PinTypeEXT:   "ext",
+		PinTypeSYNCE: "synce-eth-port",
+		PinTypeINT:   "int-oscillator",
+		PinTypeGNSS:  "gnss",
 	}
 	typ, found := typeMap[int(tp)]
 	if found {
@@ -381,23 +394,74 @@ func GetPinDirection(d uint32) string {
 	return ""
 }
 
+// Defines pin capabilities
+const (
+	PinCapNone  = 0
+	PinCapDir   = (1 << 0)
+	PinCapPrio  = (1 << 1)
+	PinCapState = (1 << 2)
+)
+
+// ParsePinType parses a human-readable pin type into its numeric code.
+// Supported: mux, ext, synce-eth-port, int-oscillator, gnss.
+func ParsePinType(tp string) uint32 {
+	switch strings.ToLower(tp) {
+	case "mux":
+		return 1
+	case "ext":
+		return 2
+	case "synce-eth-port":
+		return 3
+	case "int-oscillator":
+		return 4
+	case "gnss":
+		return 5
+	default:
+		return 0
+	}
+}
+
+// ParsePinDirection parses a human-readable pin direction into its numeric code.
+// Supported: input, output.
+func ParsePinDirection(d string) uint32 {
+	switch strings.ToLower(d) {
+	case "input":
+		return PinDirectionInput
+	case "output":
+		return PinDirectionOutput
+	default:
+		return 0
+	}
+}
+
+// ParsePinState parses a human-readable pin state into its numeric code.
+// Supported: connected, disconnected, selectable.
+func ParsePinState(s string) uint32 {
+	switch strings.ToLower(s) {
+	case "connected":
+		return PinStateConnected
+	case "disconnected":
+		return PinStateDisconnected
+	case "selectable":
+		return PinStateSelectable
+	default:
+		return 0
+	}
+}
+
 // GetPinCapabilities returns DPLL pin capabilities as a csv
 func GetPinCapabilities(c uint32) string {
-	cMap := map[int]string{
-		0: "",
-		1: "direction-can-change",
-		2: "priority-can-change",
-		3: "direction-can-change,priority-can-change",
-		4: "state-can-change",
-		5: "state-can-change,direction-can-change",
-		6: "state-can-change,priority-can-change",
-		7: "state-can-change,direction-can-change,priority-can-change",
+	capList := []string{}
+	if c&PinCapState != 0 {
+		capList = append(capList, "state-can-change")
 	}
-	cap, found := cMap[int(c)]
-	if found {
-		return cap
+	if c&PinCapDir != 0 {
+		capList = append(capList, "direction-can-change")
 	}
-	return ""
+	if c&PinCapPrio != 0 {
+		capList = append(capList, "priority-can-change")
+	}
+	return strings.Join(capList, ",")
 }
 
 // GetPinInfoHR returns human-readable pin status
@@ -435,7 +499,6 @@ func GetPinInfoHR(reply *PinInfo, timestamp time.Time) ([]byte, error) {
 			State:         GetPinState(reply.ParentDevice[i].State),
 			PhaseOffsetPs: float64(reply.ParentDevice[i].PhaseOffset) / DpllPhaseOffsetDivider,
 		})
-
 	}
 	for i := 0; i < len(reply.ParentPin); i++ {
 		hr.ParentPin = append(hr.ParentPin, PinParentPinHR{
