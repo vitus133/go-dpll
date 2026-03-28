@@ -21,7 +21,7 @@ build:	## Build binary
 test: ## Run unit tests
 	go test -timeout 30s github.com/vitus133/go-dpll/pkg/dpll-ynl -v
 clean:	## Remove build results
-	rm dpll-cli
+	rm dpll-cli || true
 tidy:	## Clean dependencies
 	go mod tidy && go mod vendor
 run:	## Run (no build). This is using sudo and assuming go is installed in /usr/local/

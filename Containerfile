@@ -12,7 +12,7 @@ RUN --mount=type=secret,id=rh_user --mount=type=secret,id=rh_pass \
     subscription-manager register --username "${user}" --password "${pass}" && \
     subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms --enable=rhel-9-for-x86_64-appstream-rpms && \
     /bin/dnf install -y man-db coreutils-common https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-    gcc make bison flex libmnl-devel libcap-devel elfutils-libelf-devel ncurses-devel libmnl-devel sysfsutils perf  \
+    gcc make bison flex libmnl-devel libcap-devel elfutils-libelf-devel ncurses-devel libmnl-devel sysfsutils perf cpio \
     python3-pip lshw pciutils sysstat git ethtool jq linuxptp hwdata synce4l gpsd-minimal gpsd-minimal-clients i2c-tools acpica-tools && dnf clean all && \
     ln -s /usr/bin/gpspipe /usr/local/bin/gpspipe && ln -s /usr/sbin/gpsd /usr/local/sbin/gpsd && ln -s /usr/bin/ubxtool /usr/local/bin/ubxtool && \
     subscription-manager unregister && subscription-manager clean && \
