@@ -20,7 +20,8 @@ RUN --mount=type=secret,id=rh_user --mount=type=secret,id=rh_pass \
     rm -rf $(find /net-next -mindepth 1 -maxdepth 1 \( -name 'tools' -o -name 'Documentation' \) -prune -o -print |xargs) && \
     pip install -r /net-next/tools/net/ynl/requirements.txt  && \
     git clone --depth=1 https://git.kernel.org/pub/scm/network/iproute2/iproute2-next.git && cd iproute2-next && \ 
-    ./configure && make && make install && cd .. && rm -rf iproute2-next
+    ./configure && make && make install && cd .. && rm -rf iproute2-next && \
+    pip install honcho
 
 
 COPY --from=builder /opt/app-root/src/dpll-cli /usr/local/bin/
