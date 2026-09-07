@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mdlayher/genetlink"
+	"github.com/mdlayher/netlink"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -224,4 +226,166 @@ func Test_EncodePinControl(t *testing.T) {
 	assert.NoError(t, err, "failed to read testdata for connection setting")
 	assert.Equal(t, expected, b, "encoded data is different from the desired pin connection setting data")
 
+}
+
+// TestParsePinReplies_DpllPinFractionalFrequencyOffsetPPT verifies that
+// ParsePinReplies correctly decodes the top-level DpllPinFractionalFrequencyOffsetPPT
+// attribute (FFO in parts per trillion) into PinInfo.FractionalFrequencyOffsetPPT.
+// Kernel nla_put_sint may encode as 4 or 8 bytes; both must decode.
+func TestParsePinReplies_DpllPinFractionalFrequencyOffsetPPT(t *testing.T) {
+	tests := []struct {
+		name    string
+		encode  func(*netlink.AttributeEncoder)
+		wantPPT int64
+	}{
+		{
+			name: "int32-width positive",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int32(DpllPinFractionalFrequencyOffsetPPT, 12345)
+			},
+			wantPPT: 12345,
+		},
+		{
+			name: "int32-width zero",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int32(DpllPinFractionalFrequencyOffsetPPT, 0)
+			},
+			wantPPT: 0,
+		},
+		{
+			name: "int32-width negative",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int32(DpllPinFractionalFrequencyOffsetPPT, -999)
+			},
+			wantPPT: -999,
+		},
+		{
+			name: "int64-width value beyond int32",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int64(DpllPinFractionalFrequencyOffsetPPT, 3_000_000_000)
+			},
+			wantPPT: 3_000_000_000,
+		},
+		{
+			name: "int64-width negative",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int64(DpllPinFractionalFrequencyOffsetPPT, -3_000_000_000)
+			},
+			wantPPT: -3_000_000_000,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ae := netlink.NewAttributeEncoder()
+			ae.Uint32(DpllPinID, 1)
+			tt.encode(ae)
+			payload, err := ae.Encode()
+			assert.NoError(t, err, "encode attributes")
+
+			msgs := []genetlink.Message{{Data: payload}}
+			replies, err := ParsePinReplies(msgs)
+			assert.NoError(t, err)
+			assert.Len(t, replies, 1)
+			assert.Equal(t, tt.wantPPT, replies[0].FractionalFrequencyOffsetPPT,
+				"FractionalFrequencyOffsetPPT should match encoded value")
+		})
+	}
+}
+
+// TestParsePinReplies_DpllPinFractionalFrequencyOffset verifies that the
+// top-level DpllPinFractionalFrequencyOffset attribute decodes via decodeSint,
+// handling both 4- and 8-byte SINT payloads.
+func TestParsePinReplies_DpllPinFractionalFrequencyOffset(t *testing.T) {
+	tests := []struct {
+		name   string
+		encode func(*netlink.AttributeEncoder)
+		want   int
+	}{
+		{
+			name: "int32-width positive",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int32(DpllPinFractionalFrequencyOffset, 5)
+			},
+			want: 5,
+		},
+		{
+			name: "int32-width negative",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int32(DpllPinFractionalFrequencyOffset, -42)
+			},
+			want: -42,
+		},
+		{
+			name: "int64-width value beyond int32",
+			encode: func(ae *netlink.AttributeEncoder) {
+				ae.Int64(DpllPinFractionalFrequencyOffset, 7_000_000_000)
+			},
+			want: 7_000_000_000,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ae := netlink.NewAttributeEncoder()
+			ae.Uint32(DpllPinID, 1)
+			tt.encode(ae)
+			payload, err := ae.Encode()
+			assert.NoError(t, err, "encode attributes")
+
+			msgs := []genetlink.Message{{Data: payload}}
+			replies, err := ParsePinReplies(msgs)
+			assert.NoError(t, err)
+			assert.Len(t, replies, 1)
+			assert.Equal(t, tt.want, replies[0].FractionalFrequencyOffset,
+				"FractionalFrequencyOffset should match encoded value")
+		})
+	}
+}
+
+// TestParsePinReplies_ParentDeviceNewFields verifies that ParsePinReplies
+// decodes operstate, FFO, and FFO-PPT from the pin-parent-device nest via
+// decodeSint (FFO-PPT encoded as an 8-byte SINT beyond int32 range).
+func TestParsePinReplies_ParentDeviceNewFields(t *testing.T) {
+	const parentID = uint32(7)
+	const operstate = uint32(PinOperstateActive)
+	const ffo = int32(-42)
+	const ffoPPT = int64(3_000_000_000)
+
+	ae := netlink.NewAttributeEncoder()
+	ae.Uint32(DpllPinID, 1)
+	ae.Nested(DpllPinParentDevice, func(nae *netlink.AttributeEncoder) error {
+		nae.Uint32(DpllPinParentID, parentID)
+		nae.Uint32(DpllPinOperstate, operstate)
+		nae.Int32(DpllPinFractionalFrequencyOffset, ffo)
+		nae.Int64(DpllPinFractionalFrequencyOffsetPPT, ffoPPT)
+		return nil
+	})
+	payload, err := ae.Encode()
+	assert.NoError(t, err)
+
+	msgs := []genetlink.Message{{Data: payload}}
+	replies, err := ParsePinReplies(msgs)
+	assert.NoError(t, err)
+	assert.Len(t, replies, 1)
+	assert.Len(t, replies[0].ParentDevice, 1)
+	pd := replies[0].ParentDevice[0]
+	assert.Equal(t, parentID, pd.ParentID)
+	assert.Equal(t, operstate, pd.Operstate)
+	assert.Equal(t, int(ffo), pd.FractionalFrequencyOffset)
+	assert.Equal(t, ffoPPT, pd.FractionalFrequencyOffsetPPT)
+}
+
+// TestDecodeSint_InvalidLength verifies that decodeSint rejects SINT payloads
+// that are neither 4 nor 8 bytes wide.
+func TestDecodeSint_InvalidLength(t *testing.T) {
+	for _, size := range []int{1, 2, 3, 5, 6, 7} {
+		ae := netlink.NewAttributeEncoder()
+		ae.Bytes(DpllPinFractionalFrequencyOffsetPPT, make([]byte, size))
+		payload, err := ae.Encode()
+		assert.NoError(t, err)
+
+		msgs := []genetlink.Message{{Data: payload}}
+		replies, err := ParsePinReplies(msgs)
+		assert.Error(t, err, "size %d: expected decodeSint to reject non-sint payload", size)
+		assert.Nil(t, replies)
+	}
 }
